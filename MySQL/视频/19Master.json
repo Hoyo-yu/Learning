@@ -1,0 +1,42 @@
+{
+    "datacenter": "IDC1",
+    "bind_addr": "172.16.1.3",
+    "advertise_addr_wan": "172.16.1.3",
+    "node_name": "Master001003",
+    "data_dir": "/opt/consul/data/",
+    "log_level": "INFO",
+    "log_file": "/opt/consul/logs/",
+    "log_rotate_bytes": 100000000,
+    "log_rotate_duration": "24h",
+    "client_addr": "0.0.0.0",
+    "enable_local_script_checks": true,
+    "service": {
+        "name": "w_mysql",
+        "tags": [
+            "M_or_S"
+        ],
+        "address": "172.16.1.3",
+        "port": 3306,
+        "checks": [
+            {
+                "name": "M_or_S",
+                "args": [
+                    "/opt/consul/conf/checkMaster.py",
+                    "3306"
+                ],
+                "interval": "10s",
+                "timeout": "1s"
+            }
+        ]
+    },
+    "start_join": [
+        "172.16.1.5",
+        "172.16.1.6",
+        "172.16.1.7"
+    ],
+    "retry_join": [
+        "172.16.1.5",
+        "172.16.1.6",
+        "172.16.1.7"
+    ]
+}

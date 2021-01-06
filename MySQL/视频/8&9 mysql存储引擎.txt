@@ -1,0 +1,23 @@
+mysql是基于存储引擎解决方案的数据库，不同的业务和场景，可以选择一个适合的引擎从而达到最佳的效果。
+一个mysql可以提供并维护多个存储引擎
+每个引擎有不同的特点及解决问题的场景
+创建表时可以指定使用的引擎
+需要为每个引擎分配buffer pool
+
+
+查看支持的引擎
+官方自带引擎
+innodb
+memory
+myisam
+其他第三方优化引擎
+tokudb
+myrocks
+spider
+sequence
+sphinxSE
+
+非事务不支持回滚
+会话保持
+
+innodb比较浪费内存和磁盘空间

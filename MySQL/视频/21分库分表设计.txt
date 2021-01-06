@@ -1,0 +1,58 @@
+1mysql为什么要分库分表？
+Btree的高度尽可能为3
+单表行数太多出现性能拐点
+单表物理太大,不方便管理
+单实例超过1T,不方便管理
+单表并发太多,锁争用明显
+实例并发太高,锁争用明显
+
+2常见的分库分表方案
+基于Hash
+UserID%100---User0.....User99
+UserID>1%10=D,10个库,每个库10个表
+
+基于Range
+20171201-20171231 DB1 表名 Tb_201712   UserID%10    Tb_201712_0...Tb_201712_9     select ... from tb_M_N where UserID=N and addtime > X and addtime < Y;
+
+基于List
+VipSet->UserID {10001,10010,....99999} ->DB1->tb_x   select ... from tb_x where UserID=N;
+
+基于Range+Hash
+UserID[1-2000万]->DB0
+   UserID%10->tb_N
+UserID[2000万-∞]
+   UserID%10->tb_N
+
+基于Hash+Range
+UserId%4096=0-4095
+[0-127]->DB0
+[128-255]->DB1...
+
+大小表拆分(金字塔设计)
+UserID>1%100->DB_n
+UserID%10->m 
+   tb_20180821_m 天表
+   tb_2018082_m  10天表
+   tb_201808_m  月表
+
+更复杂的应用：
+   超级大V,超级用户,超级VIP怎么处理
+   多IDC架构中如何处理分库分表
+   日志类型数据处理
+
+基于多种认证系统怎么分？                    GlobalDB
+手机号登录,qq号登录,微信登录...---(中间是认证系统和UserID的对应关系)---->UserID---(逻辑DB)-->物理DB
+
+3优秀开源中间件推荐
+基于Client的：Sharding-Sphere(Sharding-jdbc)
+基于proxy模型：DBLE    替换mycat
+
+
+4分库分表后的二次扩容及缩容实现
+以库为单位
+以表为单位
+以逻辑Set为单位
+
+5业界其他优秀方案
+TDSQL
+RadonDB

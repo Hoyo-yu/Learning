@@ -1,0 +1,705 @@
+mysqld, Version: 5.7.28-log (MySQL Community Server (GPL)). started with:
+Tcp port: 3306  Unix socket: /tmp/mysql.sock
+Time                 Id Command    Argument
+2020-11-23T13:17:46.127084Z	    4 Query	show global variables like '%gen%'
+2020-11-23T13:18:20.479299Z	    4 Quit	
+2020-11-23T13:19:32.561113Z	    5 Connect	root@localhost on  using Socket
+2020-11-23T13:19:32.661825Z	    5 Query	/*!40100 SET @@SQL_MODE='' */
+2020-11-23T13:19:32.662004Z	    5 Query	/*!40103 SET TIME_ZONE='+00:00' */
+2020-11-23T13:19:32.662215Z	    5 Query	FLUSH /*!40101 LOCAL */ TABLES
+2020-11-23T13:19:32.662810Z	    5 Query	FLUSH TABLES WITH READ LOCK
+2020-11-23T13:19:32.662927Z	    5 Query	SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ
+2020-11-23T13:19:32.663033Z	    5 Query	START TRANSACTION /*!40100 WITH CONSISTENT SNAPSHOT */
+2020-11-23T13:19:32.663171Z	    5 Query	SHOW VARIABLES LIKE 'gtid\_mode'
+2020-11-23T13:19:32.664122Z	    5 Query	SELECT @@GLOBAL.GTID_EXECUTED
+2020-11-23T13:19:32.664244Z	    5 Query	SHOW MASTER STATUS
+2020-11-23T13:19:32.664373Z	    5 Query	UNLOCK TABLES
+2020-11-23T13:19:32.664643Z	    5 Query	SELECT LOGFILE_GROUP_NAME, FILE_NAME, TOTAL_EXTENTS, INITIAL_SIZE, ENGINE, EXTRA FROM INFORMATION_SCHEMA.FILES WHERE FILE_TYPE = 'UNDO LOG' AND FILE_NAME IS NOT NULL AND LOGFILE_GROUP_NAME IS NOT NULL GROUP BY LOGFILE_GROUP_NAME, FILE_NAME, ENGINE, TOTAL_EXTENTS, INITIAL_SIZE ORDER BY LOGFILE_GROUP_NAME
+2020-11-23T13:19:32.677180Z	    5 Query	SELECT DISTINCT TABLESPACE_NAME, FILE_NAME, LOGFILE_GROUP_NAME, EXTENT_SIZE, INITIAL_SIZE, ENGINE FROM INFORMATION_SCHEMA.FILES WHERE FILE_TYPE = 'DATAFILE' ORDER BY TABLESPACE_NAME, LOGFILE_GROUP_NAME
+2020-11-23T13:19:32.677510Z	    5 Query	SHOW DATABASES
+2020-11-23T13:19:32.732624Z	    5 Query	SHOW VARIABLES LIKE 'ndbinfo\_version'
+2020-11-23T13:19:32.735847Z	    5 Init DB	mysql
+2020-11-23T13:19:32.736477Z	    5 Query	SHOW CREATE DATABASE IF NOT EXISTS `mysql`
+2020-11-23T13:19:32.737418Z	    5 Query	SAVEPOINT sp
+2020-11-23T13:19:32.738010Z	    5 Query	show tables
+2020-11-23T13:19:32.739601Z	    5 Query	show table status like 'columns\_priv'
+2020-11-23T13:19:32.742348Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.743867Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.744670Z	    5 Query	show create table `columns_priv`
+2020-11-23T13:19:32.745236Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.745535Z	    5 Query	show fields from `columns_priv`
+2020-11-23T13:19:32.746108Z	    5 Query	show fields from `columns_priv`
+2020-11-23T13:19:32.746428Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `columns_priv`
+2020-11-23T13:19:32.746584Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.746669Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.746764Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.746873Z	    5 Query	SHOW TRIGGERS LIKE 'columns\_priv'
+2020-11-23T13:19:32.747175Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.747280Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.747388Z	    5 Query	show table status like 'db'
+2020-11-23T13:19:32.747710Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.747798Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.747893Z	    5 Query	show create table `db`
+2020-11-23T13:19:32.748016Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.748134Z	    5 Query	show fields from `db`
+2020-11-23T13:19:32.748451Z	    5 Query	show fields from `db`
+2020-11-23T13:19:32.748747Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `db`
+2020-11-23T13:19:32.748949Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.749060Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.749155Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.749261Z	    5 Query	SHOW TRIGGERS LIKE 'db'
+2020-11-23T13:19:32.749543Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.749631Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.749730Z	    5 Query	show table status like 'engine\_cost'
+2020-11-23T13:19:32.749980Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.750067Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.750148Z	    5 Query	show create table `engine_cost`
+2020-11-23T13:19:32.750270Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.750372Z	    5 Query	show fields from `engine_cost`
+2020-11-23T13:19:32.750627Z	    5 Query	show fields from `engine_cost`
+2020-11-23T13:19:32.750871Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `engine_cost`
+2020-11-23T13:19:32.751653Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.752144Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.752608Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.752961Z	    5 Query	SHOW TRIGGERS LIKE 'engine\_cost'
+2020-11-23T13:19:32.753342Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.753463Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.753557Z	    5 Query	show table status like 'event'
+2020-11-23T13:19:32.753860Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.753948Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.754037Z	    5 Query	show create table `event`
+2020-11-23T13:19:32.754149Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.754255Z	    5 Query	show fields from `event`
+2020-11-23T13:19:32.754587Z	    5 Query	show fields from `event`
+2020-11-23T13:19:32.754899Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `event`
+2020-11-23T13:19:32.755050Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.755150Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.755242Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.755344Z	    5 Query	SHOW TRIGGERS LIKE 'event'
+2020-11-23T13:19:32.755609Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.755697Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.755795Z	    5 Query	show table status like 'func'
+2020-11-23T13:19:32.756068Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.756147Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.756244Z	    5 Query	show create table `func`
+2020-11-23T13:19:32.756347Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.756455Z	    5 Query	show fields from `func`
+2020-11-23T13:19:32.756689Z	    5 Query	show fields from `func`
+2020-11-23T13:19:32.756929Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `func`
+2020-11-23T13:19:32.757060Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.757144Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.757234Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.757335Z	    5 Query	SHOW TRIGGERS LIKE 'func'
+2020-11-23T13:19:32.757588Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.757676Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.757776Z	    5 Query	show table status like 'gtid\_executed'
+2020-11-23T13:19:32.758097Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.758182Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.758263Z	    5 Query	show create table `gtid_executed`
+2020-11-23T13:19:32.758374Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.758476Z	    5 Query	show fields from `gtid_executed`
+2020-11-23T13:19:32.758698Z	    5 Query	show fields from `gtid_executed`
+2020-11-23T13:19:32.758919Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.759006Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.759101Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.759184Z	    5 Query	SHOW TRIGGERS LIKE 'gtid\_executed'
+2020-11-23T13:19:32.759439Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.759526Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.759623Z	    5 Query	show table status like 'help\_category'
+2020-11-23T13:19:32.783071Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.783173Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.783359Z	    5 Query	show create table `help_category`
+2020-11-23T13:19:32.783493Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.783673Z	    5 Query	show fields from `help_category`
+2020-11-23T13:19:32.784320Z	    5 Query	show fields from `help_category`
+2020-11-23T13:19:32.785162Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `help_category`
+2020-11-23T13:19:32.785775Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.786200Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.786592Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.786839Z	    5 Query	SHOW TRIGGERS LIKE 'help\_category'
+2020-11-23T13:19:32.787162Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.787257Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.787357Z	    5 Query	show table status like 'help\_keyword'
+2020-11-23T13:19:32.816059Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.816187Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.816329Z	    5 Query	show create table `help_keyword`
+2020-11-23T13:19:32.816449Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.816588Z	    5 Query	show fields from `help_keyword`
+2020-11-23T13:19:32.816855Z	    5 Query	show fields from `help_keyword`
+2020-11-23T13:19:32.817104Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `help_keyword`
+2020-11-23T13:19:32.818319Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.818420Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.818513Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.818618Z	    5 Query	SHOW TRIGGERS LIKE 'help\_keyword'
+2020-11-23T13:19:32.818888Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.818977Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.819075Z	    5 Query	show table status like 'help\_relation'
+2020-11-23T13:19:32.821601Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.821683Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.821776Z	    5 Query	show create table `help_relation`
+2020-11-23T13:19:32.821896Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.822071Z	    5 Query	show fields from `help_relation`
+2020-11-23T13:19:32.822297Z	    5 Query	show fields from `help_relation`
+2020-11-23T13:19:32.822525Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `help_relation`
+2020-11-23T13:19:32.823815Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.823854Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.823920Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.824022Z	    5 Query	SHOW TRIGGERS LIKE 'help\_relation'
+2020-11-23T13:19:32.824276Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.824374Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.824463Z	    5 Query	show table status like 'help\_topic'
+2020-11-23T13:19:32.898200Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.898299Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.898404Z	    5 Query	show create table `help_topic`
+2020-11-23T13:19:32.898515Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.898622Z	    5 Query	show fields from `help_topic`
+2020-11-23T13:19:32.898920Z	    5 Query	show fields from `help_topic`
+2020-11-23T13:19:32.899208Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `help_topic`
+2020-11-23T13:19:32.913002Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.913111Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.913210Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.913322Z	    5 Query	SHOW TRIGGERS LIKE 'help\_topic'
+2020-11-23T13:19:32.913633Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.913738Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.913844Z	    5 Query	show table status like 'innodb\_index\_stats'
+2020-11-23T13:19:32.917479Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.917554Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.917696Z	    5 Query	show create table `innodb_index_stats`
+2020-11-23T13:19:32.917815Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.917956Z	    5 Query	show fields from `innodb_index_stats`
+2020-11-23T13:19:32.918305Z	    5 Query	show fields from `innodb_index_stats`
+2020-11-23T13:19:32.918646Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `innodb_index_stats`
+2020-11-23T13:19:32.919151Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.919335Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.919434Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.919540Z	    5 Query	SHOW TRIGGERS LIKE 'innodb\_index\_stats'
+2020-11-23T13:19:32.919807Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.919896Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.919992Z	    5 Query	show table status like 'innodb\_table\_stats'
+2020-11-23T13:19:32.921686Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.921776Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.921865Z	    5 Query	show create table `innodb_table_stats`
+2020-11-23T13:19:32.921971Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.922078Z	    5 Query	show fields from `innodb_table_stats`
+2020-11-23T13:19:32.922328Z	    5 Query	show fields from `innodb_table_stats`
+2020-11-23T13:19:32.922574Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `innodb_table_stats`
+2020-11-23T13:19:32.922782Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.922876Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.923024Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.923137Z	    5 Query	SHOW TRIGGERS LIKE 'innodb\_table\_stats'
+2020-11-23T13:19:32.923393Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.923483Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.923579Z	    5 Query	show table status like 'ndb\_binlog\_index'
+2020-11-23T13:19:32.929000Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.929121Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.929195Z	    5 Query	show create table `ndb_binlog_index`
+2020-11-23T13:19:32.929313Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.929455Z	    5 Query	show fields from `ndb_binlog_index`
+2020-11-23T13:19:32.929766Z	    5 Query	show fields from `ndb_binlog_index`
+2020-11-23T13:19:32.930034Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `ndb_binlog_index`
+2020-11-23T13:19:32.930217Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.930327Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.930417Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.930524Z	    5 Query	SHOW TRIGGERS LIKE 'ndb\_binlog\_index'
+2020-11-23T13:19:32.930831Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.930921Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.931018Z	    5 Query	show table status like 'plugin'
+2020-11-23T13:19:32.931277Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.931365Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.931450Z	    5 Query	show create table `plugin`
+2020-11-23T13:19:32.931544Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.931649Z	    5 Query	show fields from `plugin`
+2020-11-23T13:19:32.931870Z	    5 Query	show fields from `plugin`
+2020-11-23T13:19:32.932109Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `plugin`
+2020-11-23T13:19:32.932235Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.932324Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.932421Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.932556Z	    5 Query	SHOW TRIGGERS LIKE 'plugin'
+2020-11-23T13:19:32.932816Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.932903Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.933033Z	    5 Query	show table status like 'proc'
+2020-11-23T13:19:32.934166Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.934250Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.934338Z	    5 Query	show create table `proc`
+2020-11-23T13:19:32.934452Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.934589Z	    5 Query	show fields from `proc`
+2020-11-23T13:19:32.934884Z	    5 Query	show fields from `proc`
+2020-11-23T13:19:32.935169Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `proc` WHERE db != 'sys'
+2020-11-23T13:19:32.935920Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.936056Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.936168Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.936268Z	    5 Query	SHOW TRIGGERS LIKE 'proc'
+2020-11-23T13:19:32.936602Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.936689Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.936778Z	    5 Query	show table status like 'procs\_priv'
+2020-11-23T13:19:32.937059Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.937148Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.937239Z	    5 Query	show create table `procs_priv`
+2020-11-23T13:19:32.937344Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.937450Z	    5 Query	show fields from `procs_priv`
+2020-11-23T13:19:32.937755Z	    5 Query	show fields from `procs_priv`
+2020-11-23T13:19:32.938010Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `procs_priv`
+2020-11-23T13:19:32.938186Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.938275Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.938365Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.938466Z	    5 Query	SHOW TRIGGERS LIKE 'procs\_priv'
+2020-11-23T13:19:32.938726Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.938814Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.938909Z	    5 Query	show table status like 'proxies\_priv'
+2020-11-23T13:19:32.939178Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.939267Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.939352Z	    5 Query	show create table `proxies_priv`
+2020-11-23T13:19:32.939464Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.940448Z	    5 Query	show fields from `proxies_priv`
+2020-11-23T13:19:32.940913Z	    5 Query	show fields from `proxies_priv`
+2020-11-23T13:19:32.941421Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `proxies_priv`
+2020-11-23T13:19:32.941678Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.941887Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.941973Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.942080Z	    5 Query	SHOW TRIGGERS LIKE 'proxies\_priv'
+2020-11-23T13:19:32.942349Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.942450Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.942546Z	    5 Query	show table status like 'server\_cost'
+2020-11-23T13:19:32.942794Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.942874Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.942960Z	    5 Query	show create table `server_cost`
+2020-11-23T13:19:32.943062Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.943143Z	    5 Query	show fields from `server_cost`
+2020-11-23T13:19:32.943376Z	    5 Query	show fields from `server_cost`
+2020-11-23T13:19:32.943612Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `server_cost`
+2020-11-23T13:19:32.943760Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.943846Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.943970Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.944073Z	    5 Query	SHOW TRIGGERS LIKE 'server\_cost'
+2020-11-23T13:19:32.944323Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.944415Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.944509Z	    5 Query	show table status like 'servers'
+2020-11-23T13:19:32.944747Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.944827Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.944937Z	    5 Query	show create table `servers`
+2020-11-23T13:19:32.945061Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.945169Z	    5 Query	show fields from `servers`
+2020-11-23T13:19:32.945412Z	    5 Query	show fields from `servers`
+2020-11-23T13:19:32.945660Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `servers`
+2020-11-23T13:19:32.945865Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.945951Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.946040Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.946149Z	    5 Query	SHOW TRIGGERS LIKE 'servers'
+2020-11-23T13:19:32.946411Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.946499Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.946595Z	    5 Query	show table status like 'slave\_master\_info'
+2020-11-23T13:19:32.946920Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.947006Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.947097Z	    5 Query	show create table `slave_master_info`
+2020-11-23T13:19:32.947192Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.947299Z	    5 Query	show fields from `slave_master_info`
+2020-11-23T13:19:32.947613Z	    5 Query	show fields from `slave_master_info`
+2020-11-23T13:19:32.947907Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.947989Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.948080Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.948177Z	    5 Query	SHOW TRIGGERS LIKE 'slave\_master\_info'
+2020-11-23T13:19:32.948451Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.948540Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.948600Z	    5 Query	show table status like 'slave\_relay\_log\_info'
+2020-11-23T13:19:32.948868Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.948952Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.949039Z	    5 Query	show create table `slave_relay_log_info`
+2020-11-23T13:19:32.949167Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.949328Z	    5 Query	show fields from `slave_relay_log_info`
+2020-11-23T13:19:32.949599Z	    5 Query	show fields from `slave_relay_log_info`
+2020-11-23T13:19:32.949846Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.949930Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.950022Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.950135Z	    5 Query	SHOW TRIGGERS LIKE 'slave\_relay\_log\_info'
+2020-11-23T13:19:32.950404Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.950567Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.950656Z	    5 Query	show table status like 'slave\_worker\_info'
+2020-11-23T13:19:32.950909Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.950990Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.951077Z	    5 Query	show create table `slave_worker_info`
+2020-11-23T13:19:32.951161Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.951264Z	    5 Query	show fields from `slave_worker_info`
+2020-11-23T13:19:32.951525Z	    5 Query	show fields from `slave_worker_info`
+2020-11-23T13:19:32.951791Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `slave_worker_info`
+2020-11-23T13:19:32.951988Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.952074Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.952245Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.952427Z	    5 Query	SHOW TRIGGERS LIKE 'slave\_worker\_info'
+2020-11-23T13:19:32.952693Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.952784Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.952881Z	    5 Query	show table status like 'tables\_priv'
+2020-11-23T13:19:32.953153Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.953235Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.953322Z	    5 Query	show create table `tables_priv`
+2020-11-23T13:19:32.953419Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.953519Z	    5 Query	show fields from `tables_priv`
+2020-11-23T13:19:32.953760Z	    5 Query	show fields from `tables_priv`
+2020-11-23T13:19:32.954012Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `tables_priv`
+2020-11-23T13:19:32.954717Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.955222Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.955626Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.955923Z	    5 Query	SHOW TRIGGERS LIKE 'tables\_priv'
+2020-11-23T13:19:32.956454Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.956622Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.956720Z	    5 Query	show table status like 'time\_zone'
+2020-11-23T13:19:32.957025Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.957106Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.957200Z	    5 Query	show create table `time_zone`
+2020-11-23T13:19:32.957295Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.957402Z	    5 Query	show fields from `time_zone`
+2020-11-23T13:19:32.957626Z	    5 Query	show fields from `time_zone`
+2020-11-23T13:19:32.957959Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `time_zone`
+2020-11-23T13:19:32.958158Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.958246Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.958329Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.958430Z	    5 Query	SHOW TRIGGERS LIKE 'time\_zone'
+2020-11-23T13:19:32.958693Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.958781Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.958877Z	    5 Query	show table status like 'time\_zone\_leap\_second'
+2020-11-23T13:19:32.959132Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.959215Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.959310Z	    5 Query	show create table `time_zone_leap_second`
+2020-11-23T13:19:32.959410Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.959511Z	    5 Query	show fields from `time_zone_leap_second`
+2020-11-23T13:19:32.959838Z	    5 Query	show fields from `time_zone_leap_second`
+2020-11-23T13:19:32.960079Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `time_zone_leap_second`
+2020-11-23T13:19:32.960272Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.960362Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.960452Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.960553Z	    5 Query	SHOW TRIGGERS LIKE 'time\_zone\_leap\_second'
+2020-11-23T13:19:32.960816Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.960903Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.960999Z	    5 Query	show table status like 'time\_zone\_name'
+2020-11-23T13:19:32.961232Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.961323Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.961417Z	    5 Query	show create table `time_zone_name`
+2020-11-23T13:19:32.961842Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.961942Z	    5 Query	show fields from `time_zone_name`
+2020-11-23T13:19:32.962149Z	    5 Query	show fields from `time_zone_name`
+2020-11-23T13:19:32.962403Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `time_zone_name`
+2020-11-23T13:19:32.962708Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.962797Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.962891Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.962994Z	    5 Query	SHOW TRIGGERS LIKE 'time\_zone\_name'
+2020-11-23T13:19:32.963260Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.963375Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.963468Z	    5 Query	show table status like 'time\_zone\_transition'
+2020-11-23T13:19:32.963779Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.963872Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.963954Z	    5 Query	show create table `time_zone_transition`
+2020-11-23T13:19:32.964106Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.964220Z	    5 Query	show fields from `time_zone_transition`
+2020-11-23T13:19:32.964506Z	    5 Query	show fields from `time_zone_transition`
+2020-11-23T13:19:32.964777Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `time_zone_transition`
+2020-11-23T13:19:32.964962Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.965143Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.965239Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.965343Z	    5 Query	SHOW TRIGGERS LIKE 'time\_zone\_transition'
+2020-11-23T13:19:32.965637Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.965721Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.965817Z	    5 Query	show table status like 'time\_zone\_transition\_type'
+2020-11-23T13:19:32.966139Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.966227Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.966311Z	    5 Query	show create table `time_zone_transition_type`
+2020-11-23T13:19:32.966422Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.966524Z	    5 Query	show fields from `time_zone_transition_type`
+2020-11-23T13:19:32.966772Z	    5 Query	show fields from `time_zone_transition_type`
+2020-11-23T13:19:32.967156Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `time_zone_transition_type`
+2020-11-23T13:19:32.967296Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.967376Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.967463Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.967564Z	    5 Query	SHOW TRIGGERS LIKE 'time\_zone\_transition\_type'
+2020-11-23T13:19:32.967831Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.967911Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.967997Z	    5 Query	show table status like 'user'
+2020-11-23T13:19:32.968299Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.968380Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.968464Z	    5 Query	show create table `user`
+2020-11-23T13:19:32.968590Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.968690Z	    5 Query	show fields from `user`
+2020-11-23T13:19:32.969481Z	    5 Query	show fields from `user`
+2020-11-23T13:19:32.970223Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `user`
+2020-11-23T13:19:32.970510Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.970580Z	    5 Query	use `mysql`
+2020-11-23T13:19:32.970744Z	    5 Query	select @@collation_database
+2020-11-23T13:19:32.970889Z	    5 Query	SHOW TRIGGERS LIKE 'user'
+2020-11-23T13:19:32.971180Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.971265Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:32.971348Z	    5 Query	RELEASE SAVEPOINT sp
+2020-11-23T13:19:32.971423Z	    5 Query	show table status like 'general\_log'
+2020-11-23T13:19:32.971757Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.971837Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.971923Z	    5 Query	show create table `general_log`
+2020-11-23T13:19:32.972014Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.972118Z	    5 Query	show fields from `general_log`
+2020-11-23T13:19:32.972327Z	    5 Query	show fields from `general_log`
+2020-11-23T13:19:32.972579Z	    5 Query	show table status like 'slow\_log'
+2020-11-23T13:19:32.973343Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:32.973428Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:32.973517Z	    5 Query	show create table `slow_log`
+2020-11-23T13:19:32.973619Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:32.973719Z	    5 Query	show fields from `slow_log`
+2020-11-23T13:19:32.973966Z	    5 Query	show fields from `slow_log`
+2020-11-23T13:19:32.974236Z	    5 Init DB	mysqltest
+2020-11-23T13:19:32.974331Z	    5 Query	SHOW CREATE DATABASE IF NOT EXISTS `mysqltest`
+2020-11-23T13:19:32.974421Z	    5 Query	SAVEPOINT sp
+2020-11-23T13:19:32.974496Z	    5 Query	show tables
+2020-11-23T13:19:32.974673Z	    5 Query	show table status like 'checksums'
+2020-11-23T13:19:33.019274Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.019473Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.019607Z	    5 Query	show create table `checksums`
+2020-11-23T13:19:33.019751Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.019848Z	    5 Query	show fields from `checksums`
+2020-11-23T13:19:33.020181Z	    5 Query	show fields from `checksums`
+2020-11-23T13:19:33.020456Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `checksums`
+2020-11-23T13:19:33.029902Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.030550Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.031145Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.031475Z	    5 Query	SHOW TRIGGERS LIKE 'checksums'
+2020-11-23T13:19:33.034480Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.035730Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.036319Z	    5 Query	show table status like 'customers'
+2020-11-23T13:19:33.057427Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.057526Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.057662Z	    5 Query	show create table `customers`
+2020-11-23T13:19:33.057754Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.057861Z	    5 Query	show fields from `customers`
+2020-11-23T13:19:33.058224Z	    5 Query	show fields from `customers`
+2020-11-23T13:19:33.058535Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `customers`
+2020-11-23T13:19:33.058727Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.058811Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.058905Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.059010Z	    5 Query	SHOW TRIGGERS LIKE 'customers'
+2020-11-23T13:19:33.059288Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.059379Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.059475Z	    5 Query	show table status like 'orderitems'
+2020-11-23T13:19:33.063337Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.063402Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.063601Z	    5 Query	show create table `orderitems`
+2020-11-23T13:19:33.064024Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.064283Z	    5 Query	show fields from `orderitems`
+2020-11-23T13:19:33.064570Z	    5 Query	show fields from `orderitems`
+2020-11-23T13:19:33.064816Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `orderitems`
+2020-11-23T13:19:33.066339Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.066452Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.066565Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.066676Z	    5 Query	SHOW TRIGGERS LIKE 'orderitems'
+2020-11-23T13:19:33.066969Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.067064Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.067156Z	    5 Query	show table status like 'orders'
+2020-11-23T13:19:33.072596Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.072701Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.072794Z	    5 Query	show create table `orders`
+2020-11-23T13:19:33.073055Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.073179Z	    5 Query	show fields from `orders`
+2020-11-23T13:19:33.073455Z	    5 Query	show fields from `orders`
+2020-11-23T13:19:33.073695Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `orders`
+2020-11-23T13:19:33.073845Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.073951Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.074038Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.074153Z	    5 Query	SHOW TRIGGERS LIKE 'orders'
+2020-11-23T13:19:33.074422Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.074512Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.074617Z	    5 Query	show table status like 'productnotes'
+2020-11-23T13:19:33.075287Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.075390Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.075490Z	    5 Query	show create table `productnotes`
+2020-11-23T13:19:33.075594Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.075708Z	    5 Query	show fields from `productnotes`
+2020-11-23T13:19:33.075963Z	    5 Query	show fields from `productnotes`
+2020-11-23T13:19:33.076218Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `productnotes`
+2020-11-23T13:19:33.076759Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.076849Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.076938Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.077045Z	    5 Query	SHOW TRIGGERS LIKE 'productnotes'
+2020-11-23T13:19:33.077312Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.077403Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.077493Z	    5 Query	show table status like 'products'
+2020-11-23T13:19:33.078151Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.078214Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.078306Z	    5 Query	show create table `products`
+2020-11-23T13:19:33.078493Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.078606Z	    5 Query	show fields from `products`
+2020-11-23T13:19:33.078886Z	    5 Query	show fields from `products`
+2020-11-23T13:19:33.079182Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `products`
+2020-11-23T13:19:33.080075Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.080200Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.080492Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.080773Z	    5 Query	SHOW TRIGGERS LIKE 'products'
+2020-11-23T13:19:33.081155Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.081304Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.081418Z	    5 Query	show table status like 'vendors'
+2020-11-23T13:19:33.102839Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.102923Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.103058Z	    5 Query	show create table `vendors`
+2020-11-23T13:19:33.103160Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.103301Z	    5 Query	show fields from `vendors`
+2020-11-23T13:19:33.103652Z	    5 Query	show fields from `vendors`
+2020-11-23T13:19:33.103931Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `vendors`
+2020-11-23T13:19:33.104139Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.104263Z	    5 Query	use `mysqltest`
+2020-11-23T13:19:33.104379Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.104498Z	    5 Query	SHOW TRIGGERS LIKE 'vendors'
+2020-11-23T13:19:33.104756Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.104860Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.104976Z	    5 Query	RELEASE SAVEPOINT sp
+2020-11-23T13:19:33.105087Z	    5 Init DB	test1
+2020-11-23T13:19:33.105202Z	    5 Query	SHOW CREATE DATABASE IF NOT EXISTS `test1`
+2020-11-23T13:19:33.105315Z	    5 Query	SAVEPOINT sp
+2020-11-23T13:19:33.105427Z	    5 Query	show tables
+2020-11-23T13:19:33.105675Z	    5 Query	show table status like 'checksums'
+2020-11-23T13:19:33.112882Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.113101Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.113220Z	    5 Query	show create table `checksums`
+2020-11-23T13:19:33.113450Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.113615Z	    5 Query	show fields from `checksums`
+2020-11-23T13:19:33.114405Z	    5 Query	show fields from `checksums`
+2020-11-23T13:19:33.114864Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `checksums`
+2020-11-23T13:19:33.115160Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.115211Z	    5 Query	use `test1`
+2020-11-23T13:19:33.115360Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.115485Z	    5 Query	SHOW TRIGGERS LIKE 'checksums'
+2020-11-23T13:19:33.115834Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.115985Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.116093Z	    5 Query	show table status like 'sbtest1'
+2020-11-23T13:19:33.128750Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.128870Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.128974Z	    5 Query	show create table `sbtest1`
+2020-11-23T13:19:33.129088Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.129210Z	    5 Query	show fields from `sbtest1`
+2020-11-23T13:19:33.129525Z	    5 Query	show fields from `sbtest1`
+2020-11-23T13:19:33.129778Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest1`
+2020-11-23T13:19:33.522488Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.522664Z	    5 Query	use `test1`
+2020-11-23T13:19:33.522756Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.522934Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest1'
+2020-11-23T13:19:33.523234Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.523327Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.523443Z	    5 Query	show table status like 'sbtest10'
+2020-11-23T13:19:33.543922Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.544045Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.544242Z	    5 Query	show create table `sbtest10`
+2020-11-23T13:19:33.544369Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.544549Z	    5 Query	show fields from `sbtest10`
+2020-11-23T13:19:33.544921Z	    5 Query	show fields from `sbtest10`
+2020-11-23T13:19:33.545259Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest10`
+2020-11-23T13:19:33.819162Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.819273Z	    5 Query	use `test1`
+2020-11-23T13:19:33.819371Z	    5 Query	select @@collation_database
+2020-11-23T13:19:33.819482Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest10'
+2020-11-23T13:19:33.819823Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.819941Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:33.820039Z	    5 Query	show table status like 'sbtest2'
+2020-11-23T13:19:33.855545Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:33.855958Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:33.856295Z	    5 Query	show create table `sbtest2`
+2020-11-23T13:19:33.856837Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:33.857275Z	    5 Query	show fields from `sbtest2`
+2020-11-23T13:19:33.858275Z	    5 Query	show fields from `sbtest2`
+2020-11-23T13:19:33.859137Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest2`
+2020-11-23T13:19:34.101878Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:34.102042Z	    5 Query	use `test1`
+2020-11-23T13:19:34.102194Z	    5 Query	select @@collation_database
+2020-11-23T13:19:34.102364Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest2'
+2020-11-23T13:19:34.102772Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:34.102875Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:34.102977Z	    5 Query	show table status like 'sbtest3'
+2020-11-23T13:19:34.133831Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:34.133986Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:34.134075Z	    5 Query	show create table `sbtest3`
+2020-11-23T13:19:34.134287Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:34.134408Z	    5 Query	show fields from `sbtest3`
+2020-11-23T13:19:34.134763Z	    5 Query	show fields from `sbtest3`
+2020-11-23T13:19:34.135030Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest3`
+2020-11-23T13:19:34.620382Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:34.620512Z	    5 Query	use `test1`
+2020-11-23T13:19:34.620756Z	    5 Query	select @@collation_database
+2020-11-23T13:19:34.620935Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest3'
+2020-11-23T13:19:34.621606Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:34.621718Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:34.621823Z	    5 Query	show table status like 'sbtest4'
+2020-11-23T13:19:34.638557Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:34.638826Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:34.638904Z	    5 Query	show create table `sbtest4`
+2020-11-23T13:19:34.639027Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:34.639238Z	    5 Query	show fields from `sbtest4`
+2020-11-23T13:19:34.639670Z	    5 Query	show fields from `sbtest4`
+2020-11-23T13:19:34.640007Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest4`
+2020-11-23T13:19:35.672785Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:35.672877Z	    5 Query	use `test1`
+2020-11-23T13:19:35.673003Z	    5 Query	select @@collation_database
+2020-11-23T13:19:35.673175Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest4'
+2020-11-23T13:19:35.674061Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:35.674209Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:35.674304Z	    5 Query	show table status like 'sbtest5'
+2020-11-23T13:19:35.738469Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:35.738585Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:35.738679Z	    5 Query	show create table `sbtest5`
+2020-11-23T13:19:35.738793Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:35.738899Z	    5 Query	show fields from `sbtest5`
+2020-11-23T13:19:35.739425Z	    5 Query	show fields from `sbtest5`
+2020-11-23T13:19:35.739779Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest5`
+2020-11-23T13:19:36.791593Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:36.791766Z	    5 Query	use `test1`
+2020-11-23T13:19:36.791848Z	    5 Query	select @@collation_database
+2020-11-23T13:19:36.792018Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest5'
+2020-11-23T13:19:36.793085Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:36.793171Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:36.793275Z	    5 Query	show table status like 'sbtest6'
+2020-11-23T13:19:36.825531Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:36.825722Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:36.825815Z	    5 Query	show create table `sbtest6`
+2020-11-23T13:19:36.826005Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:36.826107Z	    5 Query	show fields from `sbtest6`
+2020-11-23T13:19:36.826476Z	    5 Query	show fields from `sbtest6`
+2020-11-23T13:19:36.826812Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest6`
+2020-11-23T13:19:37.670907Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:37.671092Z	    5 Query	use `test1`
+2020-11-23T13:19:37.671320Z	    5 Query	select @@collation_database
+2020-11-23T13:19:37.671437Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest6'
+2020-11-23T13:19:37.679337Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:37.679635Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:37.679776Z	    5 Query	show table status like 'sbtest7'
+2020-11-23T13:19:37.711733Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:37.711841Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:37.711935Z	    5 Query	show create table `sbtest7`
+2020-11-23T13:19:37.712053Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:37.712213Z	    5 Query	show fields from `sbtest7`
+2020-11-23T13:19:37.712530Z	    5 Query	show fields from `sbtest7`
+2020-11-23T13:19:37.712828Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest7`
+2020-11-23T13:19:38.275401Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:38.275524Z	    5 Query	use `test1`
+2020-11-23T13:19:38.275666Z	    5 Query	select @@collation_database
+2020-11-23T13:19:38.275754Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest7'
+2020-11-23T13:19:38.276225Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:38.276321Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:38.276436Z	    5 Query	show table status like 'sbtest8'
+2020-11-23T13:19:38.294292Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:38.294426Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:38.294511Z	    5 Query	show create table `sbtest8`
+2020-11-23T13:19:38.294698Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:38.294817Z	    5 Query	show fields from `sbtest8`
+2020-11-23T13:19:38.295216Z	    5 Query	show fields from `sbtest8`
+2020-11-23T13:19:38.295542Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest8`
+2020-11-23T13:19:39.283153Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:39.283723Z	    5 Query	use `test1`
+2020-11-23T13:19:39.283987Z	    5 Query	select @@collation_database
+2020-11-23T13:19:39.284392Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest8'
+2020-11-23T13:19:39.285455Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:39.285667Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:39.285753Z	    5 Query	show table status like 'sbtest9'
+2020-11-23T13:19:39.301195Z	    5 Query	SET SQL_QUOTE_SHOW_CREATE=1
+2020-11-23T13:19:39.302336Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:39.303139Z	    5 Query	show create table `sbtest9`
+2020-11-23T13:19:39.303594Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:39.304354Z	    5 Query	show fields from `sbtest9`
+2020-11-23T13:19:39.305630Z	    5 Query	show fields from `sbtest9`
+2020-11-23T13:19:39.306850Z	    5 Query	SELECT /*!40001 SQL_NO_CACHE */ * FROM `sbtest9`
+2020-11-23T13:19:40.315476Z	    5 Query	SET SESSION character_set_results = 'binary'
+2020-11-23T13:19:40.316014Z	    5 Query	use `test1`
+2020-11-23T13:19:40.316113Z	    5 Query	select @@collation_database
+2020-11-23T13:19:40.316534Z	    5 Query	SHOW TRIGGERS LIKE 'sbtest9'
+2020-11-23T13:19:40.318045Z	    5 Query	SET SESSION character_set_results = 'utf8'
+2020-11-23T13:19:40.318263Z	    5 Query	ROLLBACK TO SAVEPOINT sp
+2020-11-23T13:19:40.318362Z	    5 Query	RELEASE SAVEPOINT sp
+2020-11-23T13:19:40.356695Z	    5 Quit	

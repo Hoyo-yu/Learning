@@ -1,0 +1,83 @@
+﻿用户结构
+
+创建用户 create user 'lhy'@'172.16.1.%' identified by 'luling1012';
+建议少于10个字符，不限制使用特殊字符
+
+查看用户的权限 show grants for 'lhy'@'172.16.1.%';
+
+select user(),current_user();
+
+精确匹配 create user 'lhy'@'172.16.1.%' identified by 'luling1012';
+create user 'lhy'@'172.16.1.3' identified by 'luling10121';上面的登录方式就不对了
+
+给权限grant all on *.* to lhy@'172.16.1.3' identified by 'luling10121';
+删除用户 drop user lhy@'172.16.1.3';
+更改用户的密码 alter user lhy@'172.16.1.3' identified by 'luling1012';
+更改用户的名字（保留权限）rename user lhy@'172.16.1.3' to xxx;
+
+查看加密密码 select user,host,authentication_string from mysql.user;
+
+查看没密码的用户 select user,host,from mysql.user where password='';
+select user,host from mysql.user where anthentication_string='';
+
+让用户口令失效，登录后必须改密码
+alter user lhy@'172.16.1.%' password expire;
+
+远程登录mysql -ulhy -h172.16.1.4 -p -P3306
+
+不小心删除root账户，可以从别的地方将user表拷过去，必须同版本。
+
+
+权限管理
+一般账户：select
+开发：insert,select,update,delete
+
+use information_schema;
+select table_name from tables where table_schma='test';
+
+查看某一账户某个库的select权限
+select concat("grant select on test.",table_name, "to r_lhy@'172.16.1.3';")from tables where table_schema='test' and table_name not in ('user');
+
+密码随机生成：
+openssl rand -base64 12
+cat /dev/urandom | LC_ALL=C tr -dc "[:alnum:]" | fold -w 12 |head -1
+echo "某一密码" |md5sum
+
+show privileges;权限查看
+
+show grants for 'root'@'localhost';
+授权一个与root权限一致的账号：grant all privileges on *.* to '某一用户' with grant option;(同时创建了用户)
+
+注意以下权限：file、 process、super、all、grant all ... with grant option
+外键的使用（权衡）
+
+truncate table 清空表；
+
+show grants for current_user();
+show grants for '某用户'；
+
+权限控制表：mysql.user,mysql.sb,mysql.tabls_priv,mysql.procs_priv.
+flush privileges;生效
+提示：不要对权限表进行DML操作
+查看打开了多少张表:show open tables;
+
+删除权限：revoke ....from 
+利用Sysbench给数据库压力：sysbench,mysql-tpcc,YCSB工具
+Git默认安装在/usr/libexec/git-core      yum install git
+git clone https://github.com/akopytov/sysbench.git
+cd sysbench
+yum -y install bzr make automake libtool pkgconfig libaio-devel openssl-devel
+./autogen.sh
+./configure --prefix=/usr/local/sysbench/ --with-mysql --with-mysql-includes=/usr/local/mysql/include --with-mysql-libs=/usr/local/mysql/lib
+make install
+
+whereis sysbench
+ldd /usr/local/sysbench/bin/sysbench 查看是否有库的缺失
+如果有先在/etc/ld.so.conf.d/创建一个mysql.conf，往里面写入/usr/local/mysql/lib
+用ldconfig让mysql.conf生效
+/usr/local/sysbench/bin/sysbench --version
+
+添加到环境变量
+vim /etc/profile
+export PATH="$PATH:/usr/local/sysbench/bin/"
+export PATH="$PATH:/usr/local/mysql/bin/"

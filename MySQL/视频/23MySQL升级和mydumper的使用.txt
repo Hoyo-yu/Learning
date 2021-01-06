@@ -1,0 +1,42 @@
+mysql升级需要注意的：
+MySQL支持的升级方法
+基准性能测试
+生产中推荐的方法
+升级后性能对比报告
+其他的注意事项
+
+升级原因：
+超过产品的生命周期,官方不在提供支持，但产品还在不断的迭代开发中
+新版本有大的性能提升
+新版本的新功能比较吸引人,利于开发产品实现
+操作系统升级,对某些版本不支持
+
+mysql提供的升级方式：
+数据库升级的实质是数据字典的升级
+1In-place升级(mysql_upgrade)
+适用于小版本间的升级(5.5-5.7这种属于大版本)
+操作系统也需要一致#很少用这种升级方式
+
+
+cd /usr/local
+关闭原来的版本
+进行一次全备,冷拷贝 datadir
+unlink mysql
+ln -S /opt/mysql/mysql-new-version /usr/local/mysql
+/usr/local/mysql/bin/mysqld --defaults-file=/path/my.cnf --skip-networking --skip-grant-tables &
+/usr/local/mysql/bin/mysql_upgrade -S /tmp/mysql.socket
+/usr/local/mysql/bin/mysqld --defaults-file=/path/my.cnf &
+
+2逻辑导出导入升级(mysqldump,mydumper)
+跨大版本的升级
+操作系统变更
+字符集转换
+
+利用mysqldump,mydumper导出
+mysqldump --master-data=2 --single-transaction 需要导出的库
+利用新版本初始化环境
+然后将备份的库导入到新版本
+
+需要对用户进行迁移
+pt-show-grants -host=172.16.1.4 --user=root --database=mysql --port=3306 --password='luling1012' [--drop --flush]
+注意事项：禁忌对生产中的主库直接做升级,优先对从库进行升级

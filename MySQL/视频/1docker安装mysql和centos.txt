@@ -1,0 +1,29 @@
+https://www.cnblogs.com/kingsonfu/p/11576797.html安装docker
+
+docker安装centos7
+docker pull centos:7
+docker run -idt <image id> /bin/bash
+docker ps -a 查看container id
+docker exec -it <container id> bash
+yum install net-tools
+yum install -y openssh-server
+yum install -y openssl
+yum install initscripts
+yum install -y openssh-server vim lrzsz wget gcc-c++ pcre pcre-devel zlib zlib-devel ruby openssl openssl-devel patch bash-completion zlib.i686 libstdc++.i686 lsof unzip zip
+并保存为新的镜像
+docker commit <image id>   新镜像名：tag
+docker save <image id> /usr/local/docker/新镜像名.tar
+docker run --privileged=true -tid -p 5022:22 --name 镜像名 新镜像名：tag /usr/sbin/init
+docker exec -it centos7-bigdata1 /bin/bash
+ifconfig
+systemctl start sshd
+ps -ef | grep ssh
+passwd root设置ssh账号密码
+在外面登录   ssh root@宿主机ip -p映射的端口
+之前启动过得镜像直接用docker start container id
+
+docker 安装mysql:5.7
+docker pull mysql:5.7
+docker run -p 3310:3306 --name mysql -v /docker/mysql/conf:/etc/mysql/conf.d -v /docker/mysql/logs:/logs -v /docker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=xxx -d mysql:5.7
+mysql -uroot -h宿主机ip -p
+

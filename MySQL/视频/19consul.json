@@ -1,0 +1,22 @@
+{
+    "datacenter": "IDC1",
+    "bind_addr": "172.16.1.5",
+    "advertise_addr_wan": "172.16.1.5",
+    "server": true,
+    "node_name": "consul3",
+    "data_dir": "/opt/consul/data/",
+    "log_level": "INFO",
+    "log_file": "/opt/consul/logs/",
+    "log_rotate_bytes": 100000000,
+    "log_rotate_duration": "24h",
+    "ui": true,
+    "retry_join": [
+        "172.16.1.6",
+        "172.16.1.7"
+    ],
+    "retry_interval": "3s",
+    "raft_protocol": 3,
+    "rejoin_after_leave": true,
+    "client_addr": "0.0.0.0",
+    "disable_host_node_id": true
+}

@@ -1,0 +1,86 @@
+[mysql]
+socket=/tmp/mysql.sock
+prompt="\u@\\h:\\p [\\d]>"
+
+[mysqld]
+user=mysql
+socket=/tmp/mysql.sock
+binlog-format=ROW 
+server_id=1921682014
+port=3306
+#path settings
+socket=/tmp/mysql.sock
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+log_bin=mysql-bin
+relay_log=/usr/local/mysql/logs/relay
+log_error=/usr/local/mysql/logs/mysqld.log
+slow_query_log_file = /usr/local/mysql/logs/slow.log
+innodb_undo_directory = /usr/local/mysql/logs/
+tmpdir=/tmp
+
+#basic settings
+max_connections = 2000
+max_connect_errors = 3000
+interactive_timeout = 1800
+wait_timeout = 1800
+skip_name_resolve = 1
+character-set-server=utf8mb4
+default-storage-engine=innodb
+lower_case_table_names=0
+sql_mode ="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER"
+init-connect='SET NAMES utf8mb4'
+max_allowed_packet=64M
+
+#log settings
+slow_query_log = 1
+log_slow_admin_statements = 1
+log_slow_slave_statements = 1
+log_throttle_queries_not_using_indexes = 10
+long_query_time = 1
+log_queries_not_using_indexes=ON
+
+
+#session buffer settings
+join_buffer_size = 32M
+tmp_table_size = 32M
+read_buffer_size = 8M
+read_rnd_buffer_size = 16M
+sort_buffer_size = 16M
+max_allowed_packet = 16M
+thread_cache_size = 200
+thread_stack = 256K
+
+#innodb settings
+innodb_lru_scan_depth = 2000
+innodb_io_capacity = 500
+innodb_io_capacity_max = 1000
+innodb_flush_method = O_DIRECT
+innodb_file_format = Barracuda
+innodb_flush_neighbors = 1
+innodb_log_buffer_size = 16M
+innodb_purge_threads = 8
+innodb_thread_concurrency = 40
+innodb_print_all_deadlocks = 1
+innodb_strict_mode = 1
+innodb_buffer_pool_dump_pct = 40
+innodb_lock_wait_timeout = 120
+query_cache_type = OFF
+query_cache_size = 0
+event_scheduler = on
+
+init_connect='SET collation_connection = utf8_unicode_ci'
+init_connect='SET NAMES utf8'
+character-set-server=utf8
+collation-server=utf8_unicode_ci
+#skip-character-set-client-handshake
+innodb_buffer_pool_size=8M
+symbolic-links=0
+sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+
+[mysqld_safe]
+pid-file=/tmp/mysqld/mysqld.pid
+
+[client]
+default-character-set=utf8mb4
+

@@ -1,0 +1,26 @@
+﻿将w_lhy设置所有权限
+sysbench /usr/local/sysbench/share/sysbench/oltp_read_write.lua --mysql-host=172.16.1.4 --mysql-port=3306 --mysql-user=w_lhy --mysql-password=luling1012 --mysql-db=test1 --tables=10 --table_size=100000 --mysql_storage_engine=Innodb prepare(cleanup)
+prepare预热
+show  processlist;
+show master status;
+
+并发运行
+sysbench /usr/local/sysbench/share/sysbench/oltp_read_write.lua --mysql-host=172.16.1.4 --mysql-port=3306 --mysql-user=w_lhy --mysql-password=luling1012 --mysql-db=test1 --tables=1 --table_size=10000 --mysql_storage_engine=Innodb --threads=10 --time=3600 --warmup-time=100 --report-interval=10 --rand-type=uniform run |tee ~/s11.log
+在root用户下登录mysql查看读写性能show global status like "%thread%";
+
+proxysql
+vim /usr/local/sysbench/share/sysbench/oltp_common.lua 查看sysbench的参数
+show global variables like "%long_query_time%";查看日志的记录时间
+set global long_query_time=0.1/=1对老连接没用
+vmstat 1 2/10（行数据）
+iostat m t 2(s) 3(次数)
+top
+压力测试后的优化
+查询缓存（QC）都禁了
+监控docker   cadvisor工具
+zabbix监控mysql
+pt-query-digest分析query日志
+
+
+
+sysbench /usr/local/sysbench/share/sysbench/oltp_read_write.lua --mysql-host=172.16.1.3 --mysql-port=3306 --mysql-user=root --mysql-password=luling1012 --mysql-db=test1 --tables=10 --table_size=10000 --mysql_storage_engine=Innodb prepare

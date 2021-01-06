@@ -1,0 +1,127 @@
+@@单机三实例实现MGR的部署
+
+uuidgen生成一个uuid
+
+export PATH=$PATH:/usr/local/mysql/bin
+
+mkdir -p /data/mysql330{7,8,9}/{data,logs}
+touch /data/mysql330{7,8,9}/logs/err.log /data/mysql330{7,8,9}/logs/slow.log
+
+/data/mysql3307/my3307.cnf
+/data/mysql3308/my3308.cnf
+/data/mysql3309/my3309.cnf
+
+chown -R mysql.mysql /data /usr/local/mysql
+
+/usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3307/my3307.cnf --initialize-insecure
+/usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3308/my3308.cnf --initialize-insecure 
+/usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3309/my3309.cnf --initialize-insecure  
+
+mysqld --defaults-file=/data/mysql3307/my3307.cnf &
+mysqld --defaults-file=/data/mysql3308/my3308.cnf &
+mysqld --defaults-file=/data/mysql3309/my3309.cnf &
+
+
+mysql -S /tmp/mysql3307.sock
+
+set sql_log_bin=0;
+grant replication slave,replication client on *.* to repl@'%' identified by 'luling1012';
+SET SQL_LOG_BIN=1;
+
+开启分布式复制
+
+change master to master_user='repl',master_password='luling1012' for channel 'group_replication_recovery';
+
+加载GR插件
+
+install plugin group_replication soname 'group_replication.so';
+show plugins;
+
+启动复制程序
+set global group_replication_bootstrap_group=ON;
+start group_replication;
+set global group_replication_bootstrap_group=OFF;
+#检测组是否创建并已加入新成员
+select * from performance_schema.replication_group_members;
+
+
+mysql -S /tmp/mysql3308.sock
+
+set sql_log_bin=0;
+grant replication slave,replication client on *.* to repl@'%' identified by 'luling1012';
+SET SQL_LOG_BIN=1;
+
+开启分布式复制
+change master to master_user='repl',master_password='luling1012' for channel 'group_replication_recovery';
+
+加载GR插件
+install plugin group_replication soname 'group_replication.so';
+show plugins;
+
+启动复制程序
+start group_replication;
+
+#检测组是否创建并已加入新成员
+select * from performance_schema.replication_group_members;
+
+注： 前面的用户密码修改和创建用户操作必须设置binlog不记录，执行后再打开，否则会引起START GROUP_REPLICATION执行报错:
+ERROR 3092 (HY000): The server is not configured properly to be an active member of the group. Please see more details on error log.
+解决方案是：根据提示打开group_replication_allow_local_disjoint_gtids_join选项，mysql命令行执行:
+mysql> set global group_replication_allow_local_disjoint_gtids_join=ON;
+然后再执行:
+mysql> start group_replication;
+
+
+创建复制用户
+mysql -S /tmp/mysql3309.sock
+set sql_log_bin=0;
+grant replication slave,replication client on *.* to repl@'%' identified by 'luling1012';
+set sql_log_bin=1;
+
+开启分布式复制
+change master to master_user='repl',master_password='luling1012' for channel 'group_replication_recovery';
+
+加载GR插件
+install plugin group_replication soname 'group_replication.so';
+show plugins;
+
+启动复制程序
+start group_replication;
+#检测组是否创建并已加入新成员
+select * from performance_schema.replication_group_members;
+
+
+如果需要重置，那么需要执行如下命令：
+STOP GROUP_REPLICATION;
+reset master;
+SET SQL_LOG_BIN=1;
+CHANGE MASTER TO MASTER_USER='repl', MASTER_PASSWORD='luling1012' FOR CHANNEL 'group_replication_recovery';
+start GROUP_REPLICATION;
+
+
+###测试
+#查看GROUP中的同步情况,当前复制状态
+select * from performance_schema.replication_group_member_stats\G;
+#当前server中各个通道是否启用,on是启用
+select * from performance_schema.replication_applier_status;
+#单主模式下，查看那个是主库,只显示uuid值
+select * from performance_schema.global_status where VARIABLE_NAME='group_replication_primary_member';
+#查看gtid相关信息
+show global variables like '%gtid%';
+#查看当前节点是否可写(只读节点的判断)
+show global variables like '%read_only%';
+#查看本节点执行队列是否有堆积
+select count_transactions_in_queue from performance_schema.replication_group_member_stats where member_id=@@server_uuid;
+
+#延迟
+从远处获取的GTID：
+select received_transaction_set from performance_schema.replication_connection_status where channel_name='group_replication_applier';
+本节点执行的GTID:
+select @@gtid_executed;(5.7.21)
+select @@global.gtid_executed;(5.7.2x)
+
+延迟的GTID=从远处获取的GTID-本节点执行的GTID
+
+sysbench压测
+MGR测试
+https://blog.csdn.net/mlztesoft/article/details/79927425    

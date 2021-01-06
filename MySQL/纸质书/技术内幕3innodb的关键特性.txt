@@ -1,0 +1,46 @@
+Innodb的关键特性包括：插入缓冲、两次写、自适应哈希索引、异步IO、刷新邻接页。
+1、插入缓冲
+insert buffer和数据页一样，也是物理页的一个组成部分。
+Innodb存储引擎开创性的设计了insert buffer，对于非聚集索引的插入或更新操作，不是每一次的直接插入到索引页中，而是先判断插入的非聚集索引页是否在缓冲池中，若在，则直接插入；若不在，则先存放到一个insert buffer对象中
+一定的频率和情况进行insert buffer和辅助索引页子节点的merge（合并）操作，这时通常能将多个插入合并到一个操作中
+它的数据结构是一棵B+树
+
+Insert buffer的使用需要同时满足两个条件：索引是辅助索引；索引不是唯一的
+也就是说insert buffer的使用场景是非唯一辅助索引的插入操作
+可以通过show engine innodb status来查看，其中insert表示insert buffer，delete mark表示delete buffer，delete表示purge buffer。
+
+要考虑的一种请款是：当数据库出现宕机的情况，这时势必有大量的insert buffer并没有合并到实际的非聚集索引中去，恢复起来消耗很长的时间。
+
+目前insert buffer存在的一个问题是：在写密集的情况下，插入缓冲会占用过多的缓冲池内存，默认会占到1/2的缓冲池内存，可以修改ibuf_pool_size_per_max_size 为n，则最大只能使用1/n的缓冲池内存。
+
+change buffer,从Innodb1.0.x开始开始引入了change buffer，可视为insert buffer的升级版，innodb存储引擎可以对DML操作（insert、delete、update）都进行缓冲
+它们分别是insert buffer，delete buffer，purge buffer。
+使用对象依然是非唯一的辅助索引。
+从innodb1.2.x开始，可以通过innodb_change_buffer_max_size来控制change buffer最大的使用内存数量。
+
+insert buffer的使用场景是非唯一辅助索引的插入操作，insert buffer的数据结构是一棵B+树，负责对所有的表的辅助索引进行insert buffer，而这棵B+树存放在共享表空间中，默认也就是ibdata1中
+因此试图通过独立表空间ibd文件恢复表中的数据时，往往会导致check table失败，这是因为表的辅助索引中的数据可能还在insert buffer中，也就是共享表空间中
+所以通过ibd文件恢复后，还需要进行repair table操作来重建表上的辅助索引。
+
+2、两次写
+Insert buffer带给innodb存储引擎的是性能上的提升，那个doublewrite带给innodb存储引擎的是数据页的可靠性。
+当数据库发生宕机时，可能innodb存储引擎正在写入某个页到表中，而这个页只写了一部分，比如16k的页，只写了前4K，之后就发生宕机了，这种情况称为部分写失效，有人会想到可以通过重做日志进行恢复
+但是必须清楚的认识到，重做日志中记录的是对页的物理操作。
+如果这个页本身已经发生了损坏，再对其进行重做是没有意义的，这就是说在应用重做日志前，用户需要一个页的副本，在写入失效时，先通过页的副本来还原该页，再进行重做，这就是doublewrite。
+
+3、自适应哈希索引（AHI）
+哈希是一种非常快的查找方法，在一般情况下这种查找的时间复杂度为O(1),B+树的查找次数，取决于B+树的高度
+在生产环境中，B+树的高度一般是3-4层，故需要3-4次的查询
+Innodb存储引擎会监控对表上各索引页的查询，如果观察到建立哈希索引可以带来速度提升，则会建立哈希索引，称之为自适应哈希索引（AHI）,AHI是通过缓冲池的B+树页构造而来，因此建立的速度很快
+Innodb存储引擎会自动根据访问的频率和模式来自动的为某些热点页建立哈希索引。可以通过innodb_adaptive_hash_index来考虑是否启用此特性，默认AHI是开启的
+
+4、异步IO
+为了提高磁盘操作性能，当前数据库都是采用异步IO的方式来处理磁盘操作，Innodb存储引擎也是如此
+用户在发出一个IO请求后立即再发出另一个IO请求，当参数innodb_use_native_aio用来控制是否启用Native AIO，默认是开启的
+在innodb存储引擎中，read ahead方式的读取都是通过AIO完成，脏页的刷新，即磁盘的写入操作全部由AIO完成
+
+5、刷新邻接页
+工作原理：当刷新一个脏页时，innodb存储引擎会检测该页所在区的所有页，如果是脏页，那么一起进行刷新
+这样做的好处是，通过AIO可以将多个IO写入操作合并为一个IO操作，顾该工作机制在传统机械磁盘下有着显著的优势
+Innodb1.2.x后提供了参数innodb_flush_neighbors来控制是否启用该特性
+传统机械磁盘建议开启

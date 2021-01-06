@@ -1,0 +1,44 @@
+{
+    "datacenter": "IDC1",
+    "primary_datacenter": "IDC1",
+    "bind_addr": "172.16.1.4",
+    "advertise_addr_wan": "172.16.1.4",
+    "node_name": "Slave001004",
+    "data_dir": "/opt/consul/data/",
+    "log_level": "INFO",
+    "log_file": "/opt/consul/logs/",
+    "log_rotate_bytes": 100000000,
+    "log_rotate_duration": "24h",
+    "client_addr": "0.0.0.0",
+    "disable_host_node_id": true,
+    "enable_local_script_checks": true,
+    "service": {
+        "name": "r_mysql",
+        "tags": [
+            "M_or_S"
+        ],
+        "address": "172.16.1.4",
+        "port": 3306,
+        "checks": [
+            {
+                "name": "M_or_S",
+                "args": [
+                    "/opt/consul/conf/checkSlave.py",
+                    "3306"
+                ],
+                "interval": "10s",
+                "timeout": "1s"
+            }
+        ]
+    },
+    "start_join": [
+        "172.16.1.5",
+        "172.16.1.6",
+        "172.16.1.7"
+    ],
+    "retry_join": [
+        "172.16.1.5",
+        "172.16.1.6",
+        "172.16.1.7"
+    ]
+}

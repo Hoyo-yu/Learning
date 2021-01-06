@@ -1,0 +1,72 @@
+一.mysqldump
+mysqldump备份原理，去数据库查询数据，然后进行sql语句的拼接。
+优点：mysql自带，使用方便，备份结果容易操作。少量数据可以使用mysqldump
+缺点:大量数据下，使用mysqldump恢复较慢，mysqldump再导入数据的时候，都是使用sql语句，需要开启事务。不建议使用.
+二.语法如下:
+mysqldump [arguments] >file_name
+(1).备份所有数据库
+mysqldump --all-databases >dump.sql
+(2).备份指定数据库
+mysqldump --databases wwj db2 db3 >dump.sql
+(3).--single-transaction 获得备份的一致性
+当启用该参数并进行备份时，确保没有其他任何的DDL语句执行.保证可重复读得到备份时间点一致性的快照.
+(4).--lock-tables(-l)
+在备份过程中，依次锁住备份的表。一般用于myisam引擎，用来保证一致性。对于innodb引擎不需要使用该参数。
+如果同时存在innodb和myisam的表，则只能使用--lock-tables
+(5).--lock-all-tables(-x)
+在备份过程中，同时对所有表上锁。
+(6).--add-drop-database
+在create database前先运行drop database，和-all-databases 或者 --databases一起使用
+--add-drop-table
+在创建table前，先删除table
+(7).--events(-E)
+备份事件调度器
+(8).--routines(-R)
+备份存储过程和函数
+(9).--triggers
+备份触发器
+(10).--hex-blob
+将binary，varbinary，blog，bit列类型备份为十六进制的格式
+(11).--tab=path(-T path)
+产生TAB分割的数据文件。对于每张表，创建一个包含create table语句的table_name.sql文件和包含数据的tb1_name.txt文件
+(12).--where='where_condition'(-w)
+导出给定条件下的数据
+(13).导出某数据库中的几个表
+mysqldump -uroot -p -S /tmp/mysql3306.sock --single-transaction test emp_range> t1.sql
+(14).导出表结构
+--no-data, -d 不导出任何数据，只导出数据库表结构
+mysqldump -uroot -p -S /tmp/mysql3306.sock --single-transaction --all-databases -d > all.sql
+(15).--ignore-table=name
+不导出某个表，e.g = --ignore-table=database.table
+(16).--insert-ignore    
+Insert rows with INSERT IGNORE
+(17).--log-error=name   
+Append warnings and errors to given file.
+(18).--master-data
+mysqldump导出数据时，当这个参数的值为1的时候，mysqldump出来的文件就会包括CHANGE MASTER TO这个语句，CHANGE MASTER TO后面紧接着就是file和position的记录，在slave上导入数据时就会执行这个语句，salve就会根据指定这个文件位置从master端复制binlog。默认情况下这个值是1  当这个值是2的时候，chang master to也是会写到dump文件里面去的，但是这个语句是被注释的状态。  
+master-data参数在建立slave数据库的时候会经常用到，因为这是一个比较好用的参数，默认值为1，默认情况下，会包含change master to，这个语句包含file和position的记录始位置。master-data=2的时候，在mysqldump出来的文件包含CHANGE MASTER TO这个语句，处于被注释状态
+(19).--no-create-info, -t 只导出数据，而不添加CREATE TABLE 语句
+(20).--no-create-db, -n 只导出数据，而不添加CREATE DATABASE 语句
+(21).--force，-f 在导出过程中忽略出现的SQL错误，当出现错误时仍然继续后面的操作
+--mysqldump 的恢复
+(1).mysql -uroot -p 
+(2).source /home/mysql/test_backup.sql
+或者
+/usr/local/mysql/bin/mysql -uroot -p -S /tmp/mysql3306.sock < all.sql
+三.逻辑备份恢复实验
+1.备份恢复所有数据库
+- 备份实例下所有数据库
+mysqldump -u root -p -S /tmp/mysql3306.sock --all-databases --add-drop-database --single-transaction > /tmp/db1.sql
+- 恢复
+mysql -uroot -p -S /tmp/mysql3306.sock < /tmp/db1.sql
+2.备份恢复单独的数据库
+-备份数据库wwj
+mysqldump -u root -p -S /tmp/mysql3306.sock --databases wwj --add-drop-database --single-transaction > /tmp/db2.sql
+-恢复数据库wwj
+mysql -uroot -p -S /tmp/mysql3306.sock < /tmp/db2.sql
+3.备份恢复某数据库中的几个表
+-备份表wwj.t3, wwj.haha22
+mysqldump -u root -p -S /tmp/mysql3306.sock --single-transaction --databases wwj --tables t3 haha22 > /tmp/db3.sql
+-恢复
+use wwj;
+source /tmp/db3.sql;

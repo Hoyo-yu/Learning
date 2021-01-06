@@ -1,0 +1,94 @@
+﻿做操作前给自己留好后路
+给mysl瘦身： mkdir /data/backup
+cd /usr/local/mysql
+cp -r bin /data/backup
+cp -r lib /data/backup
+mkdir {lib,bin}
+cp /data/backup/bin/mysqld bin/
+chown =R mysql:mysql *
+strip bin/mysqld
+
+日志相关
+--log-error
+--slow_query_log
+--long_query_time
+--log-bin等
+redo日志
+
+
+row+gtid
+gtid-mode=on[mysqld]
+查询二进制日志文件  show binary logs;
+显示mysql当前的日志及状态  show master status;
+查询二进制日志事件   show binlog events in 'mysql-bin.0000xx';
+解析二进制文件 mysqlbinlog -v -v --base64-output=decode-rows /data/mysql3306/data/mysql-bin.000004>1.sql
+二进制日志文件 
+set global expire_logs_days=7;[mysqld]
+purge binary logs before now() -interval 3 days;删除3天前的日志
+purge binary logs to 'mysql-bin.0000xx';
+
+审计日志
+什么时间什么机器什么用户登录mysql执行了啥操作
+
+只要能写binlog都能被复制
+
+mysql日常的常规命令
+
+认识information_schema数据库（只读库）
+information_schema相当于mysql的中央信息库该库不持久化，虚拟数据库，可以通过select访问
+select table_name,engine from information_schema.tables where table_schema='test';
+统计哪个库下表的数据大小和索引大小
+select table_name,sum(data_length)/1024/1024 DM,sum(index_length)/1024/1024 IM from tables where re table_schema='test' group by table_name;
+concat拼接语句结合into outfile使用   secure_file_priv=/tmp/
+
+show语句  help show;
+show 还支持where和like使用
+
+整型：int(4个字节) 2^31-1(正负)  bigint(大量的删除，大量的写入)   int(11)11是修饰符，不是长度限制   oracle中数字类型 number(11)  11是长度          限制
+          tinyint(1个字节) 标志位
+          同一个字段在其他表中要注意字段类型必须一致（索引）
+浮点型：
+          decimal  精确的十进制浮点型，高精度计算
+          M(10,65)   D(0,30)
+          小数点后面的位数超限后，自动四舍五入（sql_mode=''）
+          互联网的世界基本不需要浮点数
+          float（p）p在（0,24）占4个字节  在（24,53）8字节
+          float   4个字节
+日期型：datetime
+             timestamp  1970-2038     
+字符型：varchar
+             enum枚举    
+                char(4)和varchar(4)
+''               4('    ')              1('')
+'ab'           4('ab  ')             3('ab')
+'abcd'        4('abcd')           5('abcd')
+'adjasfljsf'  4('adja')            5('abcd')
+
+varchar是可变长类型，需要额外的一两个字节
+varchar实际存储长度超过255个字节时，会被当做text处理
+实际可存储的字符数=65533/3(utf8)或者是65533/4(utf8mb4)
+https://github.com/zhishutech/   字段规范
+
+myisam没事务   
+先引擎后server
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,50 @@
+1、单主切换到多主模式
+1.1、停止组复制(在所有MGR节点上执行):
+stop group_replication;
+set global group_replication_single_primary_mode=OFF;
+set global group_replication_enforce_update_everywhere_checks=ON;
+
+1.2、随便某个mgr节点执行:186
+SET GLOBAL group_replication_bootstrap_group=ON;
+START GROUP_REPLICATION;
+SET GLOBAL group_replication_bootstrap_group=OFF;
+
+1.3、然后在其它mgr节点执行:194 195
+START GROUP_REPLICATION;
+
+1.4、查看mgr组信息(任意MGR节点查看)
+SELECT * FROM performance_schema.replication_group_members;
+
+可以看到所有MGR节点状态都是online，角色都是PRIMARY，MGR多主模式搭建成功。
+验证下MGR多主模式的节点数据同步:
+在MGR-node1节点更新数据:
+在MGR-node2节点更新数据
+在MGR-node3节点更新数据
+MGR多主模式下, 所有节点都可以进行读写操作.
+
+2、切回单主模式
+2.1、停止组复制(在所有MGR节点上执行):
+stop group_replication;
+set global group_replication_enforce_update_everywhere_checks=OFF;
+set global group_replication_single_primary_mode=ON;
+
+2.2、选择一个节点作为主节点,在主节点上执行(186):
+SET GLOBAL group_replication_bootstrap_group=ON;
+START GROUP_REPLICATION;
+SET GLOBAL group_replication_bootstrap_group=OFF;
+
+2.3、在剩余节点,也就是从库节点上执行(194 195):
+START GROUP_REPLICATION;
+
+2.4、查看MGR组信息(任意MGR节点上都可查看):
+SELECT * FROM performance_schema.replication_group_members;
+
+切回单主模式,主具有读写权限,另外两个从节点只读不可写.
+
+
+设置MGR组集群的白名单网段: 添加节点所在网段
+
+stop group_replication;
+set global group_replication_ip_whitelist="127.0.0.1/32,172.16.60.0/24,172.16.50.0/24,172.16.51.0/24";
+start group_replication;
+show variables like "group_replication_ip_whitelist";

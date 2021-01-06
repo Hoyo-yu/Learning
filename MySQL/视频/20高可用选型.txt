@@ -1,0 +1,66 @@
+临界事务：主库在写一个事务时出现异常情况,但是该事务已经写入到binlog
+有gtid的环境不要传这个事务,删除最后一个gtid
+
+
+半同步和增强半同步不建议用MHA,对临界事务的处理不建议同步到从库
+半同步和增强半同步结构建议选用keepalived,replication-manager,xenon,orchestrator
+
+基于Raft的Xenon
+
+当主从存在复制延迟时,主库挂了,会等待Slave同步完了再切换主,延迟主要发生在sql_thread
+主库挂了,从库会将主的binlog同步过来
+
+PXC(Percona Xtradb Cluster),MGR和双主
+存在update更新丢失
+t1:old_c1=100;
+   node1:
+   c1:update tb1 set c1=20 where id=10;
+   c2:select c1 from tb1 where id=10;
+   node2:
+   c3:select c1 from tb1 where id=10;    -->c1=100;node1更新的没有传过来
+
+t2:
+   node2:update tb1 set c1=100-20 where id=10;    虽然现在c1=20传过来了,但是这个更新是基于原来c1=100进行的更新计算
+   node1:select c1 from tb1 where id=10;          -->c1=80;
+
+   c1=80;
+
+
+   尽量不要多节点写
+
+proxySQL+MGR(single/multi)
+
+MGR数据同步流程：
+1Write transaction context to group replication cache.
+2Write Gtid log event to group replication cache.
+3Copy group replication cache to buffer.
+4Copy binlog cache content to buffer.
+5Flow control step.
+6Broadcast transaction Message.
+7Waiting for certifiers notify.
+
+
+**目前比较成熟的方案
+1基于keepalived+mysql(Gtid)(16台以下,3-5套库)
+ 表现形式：mysql+双主(row+Gtid)
+         增强半同步
+前提保证同一时间只有一个节点的写入,而且所有表的设计自增列不能有业务意义,数据库后续无法做拆分
+
+2MHA
+  GTID出来之前的神器
+  现在没升到Gtid的环境还在大量的使用
+  简单对现有业务基本不侵入的变更
+  使用于非Gtid环境
+
+3PXC
+  不推荐
+  实质上也是异步复制,从库一样会有延迟,但数据不会丢
+  拒绝现网直接alter table操作
+  尽量三个节点对工作
+
+4半同步/增强半同步
+  replication-manager
+  xenon
+  基于Consul的DNS接入
+
+mutt发邮件

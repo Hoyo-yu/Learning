@@ -1,0 +1,112 @@
+1复制中重要的参数：
+Master配置优化：
+1)启用log-bin
+2)binlog_format = row
+3)binlog_row_image = full
+4)gtid_mode = on
+5)enforce_gtid_consistency = on
+6)binlog_group_commit_sync_delay = 100
+7)binlog_group_commit_sync_no_delay_count = 10(缓解IO,将10个事务合并为一组，本来每次事务的提交要进行一次flush sync)  6、7同时设置的话,谁先到谁就发车。
+#IO成为瓶颈的环境，使用binlog group commit 优化效果非常不错
+8)binlog_order_commits = off(默认是on)
+9)#transaction_write_set_extraction = on
+10)binlog_transaction_dependency_tracking = COMMIT_ORDER(writeset,write_session(建议)基于行级别的并行复制)
+11)binlog_transaction_dependency_history_size = 25000
+12)max_binlog_size = 1G | 200M
+13)sync_binlog = 1(如果启用了binlog group commit,每组事务做一次fsync,没设置是每次事务做一次fsync)
+
+Slave配置优化：
+slave_net_timeout = 20|30
+默认 master_connect_retry = 60
+     master_connect_count = 24*3600
+     master_auto_position = 1
+     master_delay = 0(作用到sql_thread)
+     master_bind='';
+建议所有的从库开启binlog,开启
+slave_net_timeout = 20|30
+log_slave_updates = on
+slave_parallel_type = logical_clock
+slave_parallel_workers = 4 | 8
+slave_checkpoint_group = 512
+slave_checkpoint_period = 300
+
+slave_preserve_commit_order = on
+#前置条件：log_slave_updates、slave_parallel_type、log-bin
+salve_rows_search_algorithms = table_scan,index_scan
+#没有主键的话，设置成index_scan、hash_scan
+
+2复制中重要功能启用
+复制过滤注意事项：尽量不要再主库上设置复制过滤
+#假如binlog_do_db=test;然后又创建了一个库create database test1;从库上不会有test1这个库。
+针对sql_thread(从库)：
+**replicate_do_table = (tbl_list)
+replicate_ignore_table = (tbl_list)
+replicate_do_db = (db_list)
+replicate_ignore_db = (db_list)
+replicate_wild_do_table = (wild_tbl_list)
+replicate_wild_ignore_table = (wild_tbl_list)
+
+relay_log日志损坏了
+start slave不了,relay_log损坏,可以用change master to 拉取binlog
+先stop slave;
+修改master_log_file等要设置master_auto_position = 0
+change master to master_host='172.16.1.3', master_port=3306, master_auto_position =0 ,master_log_file='mysql-bin.000009', master_log_pos=194;
+后再将master_auto_position设置为1
+start slave;
+
+复制crash-safe replication
+#mysql 5.6推出的一个特性，默认没启用
+#以下两条开启crash-safe功能
+relay_log_info_repository = table
+relay_log_recovery = 1
+在mysql库下有一张专门的表slave_relay_log_info
+
+#5.6前sync_relay_log_info = 1& relay_log_info_repository = file 会出现OOM(内存泄漏)
+
+
+3延迟复制(针对特别大的库,复制不过来)
+stop slave sql_thread;
+change master to mater_delay = 3600;
+start slave sql_thread;
+
+禁用延迟复制
+stop slave sql_thread;
+change master to mater_delay = 0;
+start slave sql_thread;
+
+复制延迟：改sync_binlog,innodb_flush_log_at_trx_commit
+
+#思考
+主库挂了,延迟复制不会丢数据      io已经正常传输过来了,数据已经到达了从库,只是日志未应用,延迟复制针对的是sql_thread
+延迟复制的应用场景：大库的备份;
+
+4多源复制(多对一)
+master_info_repository = table
+relay_log_info_repository = table
+管理方便
+
+5增强半同步(针对的是io_thread)
+加载plugin
+install plugin rpl_semi_sync_master soname 'semisync_master.so';
+install plugin rpl_semi_sync_slave soname 'semisync_slave.so';
+Master:
+set global rpl_semi_sync_master_enabled = 1;
+Slave:
+set global rpl_semi_sync_slave_enabled = 1;
+stop slave io_thread;
+start slave io_thread;
+
+增强半同步需要在主库上执行
+set global rpl_semi_sync_master_timeout = N;#默认10s
+set global rpl_semi_sync_master_wait_for_slave_count = N;#默认1
+set global rpl_semi_sync_master_wait_point=AFTER_SYNC; 开启无损复制 
+#一上来直接弄半同步,容易把主库拖垮
+#先让异步复制追上,在来启用半同步复制
+
+#注意事项：
+#如果Master上从库全部挂掉,可以临时禁用半同步,让Master对外提供服务
+#如果拿一个备份新建一个从库，确认io_thread追上主库后再开始半同步
+
+binlog group commit的进程(flush stage->sync stage->commit stage)
+5.7之前有一个prepare_commit_lock这个锁每次提交一个,现在提交一个队列(三个状态flush,sync,commit)
+每一个队列完成了才能进入下一步队列

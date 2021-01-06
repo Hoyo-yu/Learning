@@ -1,0 +1,39 @@
+1、前缀索引的平均选择性：
+     SELECT COUNT(DISTINCT LEFT(列名, 2))/COUNT(*)；（值越低，选择性越高）
+2、mysql无法使用前缀索引做GROUP BY和ORDER BY，也无法使用前缀索引做覆盖扫描。
+3、性能不只是依赖于所有索引列的选择性（整体基数），也和查询条件的具体值有关，也就是和值的分布有关。
+4、使用explain或description进行query优化
+   （1）query必须配合索引使用，其实mysql无论是什么样的优化手段，核心就是减少磁盘的IO，尤其是减少随机IO。
+     在能查出正确的结果的前提下，我们的query要尽可能地扫描更少的行，尽可能地顺序扫描。
+   （2）Type：告诉我们对表所使用的访问方式，主要包含如下集中类型；
+     all：全表扫描
+     const：读常量，且最多只会有一条记录匹配，由于是常量，所以实际上只需要读一次；
+     eq_ref：最多只会有一条匹配结果，一般是通过主键或者唯一键索引来访问；
+     fulltext：
+     index：全索引扫描；
+     index_merge：查询中同时使用两个（或更多）索引，然后对索引结果进行merge 之后再读取表数据；
+     index_subquery：子查询中的返回结果字段组合是一个索引（或索引组合），但不是一个主键或者唯一索引；
+     rang：索引范围扫描；
+     ref：Join 语句中被驱动表索引引用查询；
+     ref_or_null：与ref 的唯一区别就是在使用索引引用查询之外再增加一个空值的查询；
+     system：系统表，表中只有一行数据；
+     unique_subquery：子查询中的返回结果字段组合是主键或者唯一约束；
+     Possible_keys：该查询可以利用的索引. 如果没有任何索引可以使用，就会显示成null，这一项内容对于优化时候索引的调整非常重要；
+     Key：MySQL Query Optimizer 从possible_keys 中所选择使用的索引；
+     Key_len：被选中使用索引的索引键长度；
+5、使用Profiling进行query优化
+     （1）开启profiling参数：set profiling=1；
+     （2）执行“SHOW PROFILE” 命令获取当前系统中保存的多个Query 的profile 的概要信息
+     （3）show profile 具体需要查看的信息列（type） for query Query_ID;
+     （4）show profile for query Query_ID;
+     （5）关闭profiling：set profiling=off;
+       type:
+       ALL                             --显示所有的开销信息
+       BLOCK IO                    --显示块IO相关开销
+       CONTEXT SWITCHES   --上下文切换相关开销
+       CPU                             --显示CPU相关开销信息
+       IPC                              --显示发送和接收相关开销信息
+       MEMORY                    --显示内存相关开销信息
+       PAGE FAULTS              --显示页面错误相关开销信息
+       SOURCE                      --显示和Source_function，Source_file，Source_line相关的开销信息
+       SWAPS                        --显示交换次数相关开销的信息

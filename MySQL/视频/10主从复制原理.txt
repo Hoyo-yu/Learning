@@ -1,0 +1,10 @@
+复制原理：master将数据修改的内容(dump_thread)写入binlog中，slave利用I/O thread将主库上的binlog'拉'取过来，并写入到relay log中，
+最后relay log利用SQL_thread将数据复制到从库中。
+复制分类：
+异步复制
+增强半同步复制after_sync
+MGR（Mysql Group Replication）复制
+
+row+gtid复制结构
+
+复制中断，一般是SQL_thread出错了

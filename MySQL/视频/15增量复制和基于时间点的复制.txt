@@ -1,0 +1,98 @@
+表空间传输
+**注意的是
+1不能并发做表空间传输
+2不能有外键
+
+flush table OldDB.tbName for export;在原库
+cp tbName.ibd,tbName.frm 到新实例被需要的库中
+unlock tables;
+
+在新的库中建立一张结构和原表相同的表
+create table NewDB.tbName like OldDB.tbName;这是在同一个实例中
+在另一个实例中,需要重新创建和原表相同的表结构
+
+
+alter table tbName discard tablespace;会将.ibd文件删除
+所以需要重新cp tbName.ibd到新实例被需要的库中
+chown -R mysql.mysql tbName.ibd
+alter table tbName import tablespace;
+
+**注意原库是主从复制的主库时,可能在从库show slave status\G会出现报错Error Tablespace is missing for table xxx
+主库中的那张表复制到从库的相应目录下,并重新授权,然后再重新start slave sql_thread;
+
+对数据库进行更名操作
+create database test;
+select concat("rename table test1.",table_name," to test.",table_name,";") from information_schema.tables where table_schema='test1' into outfile '/tmp/test1.sql';
+需要在my.cnf中添加secure_file_priv=/tmp
+得到的是一连串rename table test1.xxx to test.xxx;执行这些命令就行
+source /tmp/test1.sql;快捷方式
+drop database test1;
+
+
+使用mysqlbinlog进行binlog同步时,如果更新的数据没有超过4k,内存中的数据不会同步到磁盘,也不会写入到binlog文件中
+flush logs会强制进行内存数据刷新到磁盘;
+
+**最好放到专门用来存binlog的服务器,你放原来的实例上没有任何意义,你能登陆到机器的话可以直接拿binlog文件
+
+在专门存放binlog的机器上执行
+mysqlbinlog --raw --read-from-remote-server --stop-never --host 172.16.1.3 --port 3306 -uroot -pluling1012 mysql-bin.000001 /data/mysql3306/backup/binlog/
+在binlog复制的过程中ctrl+c了,下一次删除最后一个binlog(N),下次开始的mysqlbinlog --raw --read-from-remote-server --stop-never --host 172.16.1.3 --port 3306 -uroot -pluling1012 mysql-bin.000000N
+**主库不小心drop库了,恢复前将这个binlog同步进程关闭,恢复后再开启
+
+#默认的server-id=65535
+mysqlbinlog --help 2>&1 > 1.txt
+
+ERROR: Got error reading packet from server: A slave with the same server_uuid/server_id as this slave has connected to the master;
+不同的服务器从远程拉取主库的binlog(-R),需要指定--stop-never-slave-server-id=xxx
+mysqlbinlog -R --raw --read-from-remote-server --stop-never --host 172.16.1.3 --port 3306 -uroot -pluling1012 mysql-bin.000001 --stop-never-slave-server-id=xxx
+
+binlog备份：
+touch /data/mysql3306/binlogsh/mysql3306.binlog.conf
+MBL=/usr/local/mysql/bin/mysqlbinlog
+MYSQLHOST=172.16.1.3
+MYSQLPORT=3306
+MYSQLUSER=root
+MYSQLPASS=luling1012
+BACKUPDIR=/data/mysql3306/backup/binlog/
+RESPAWN=10
+
+
+
+touch /data/mysql3306/binlogsh/livebinlog.sh
+#！/bin/bash
+ source $1
+cd $BACKUPDIR
+ echo "Backup dir：$BACKUPDIR"
+ while :
+do
+LASTFILE=`ls -1 $BACKUPDIR|grep -v orig|tail -n 1`
+#TIMESTAMP=`date+%s`
+#FILESIZE=$(stat -c %s "$LASTFILE")
+rm -f $LASTFILE  
+#if [$FILESIZE -gt 0 ]; then
+#    echo "Backup up last binlog"
+#    mv $LASTFILE $LASTFILE$TIMESTAMP
+#fi
+touch $LASTFILE
+echo "Start live binlog backup"
+$MBL --raw --read-from-remote-server --stop-never --host $MYSQLHOST --port $MYSQLPORT -u$MYSQLUSER -p$MYSQLPASS $LASTFILE
+echo "mysqlbinlog exited with $? trying to reconect in $RESPAWN seconds"
+sleep $RESPAWN
+done  
+
+nohup /data/mysql3306/binlogsh/livebinlog.sh /data/mysql3306/binlogsh/mysql3306.binlog.conf 2>&1 > /data/mysql3306/binlogsh/log/3306.log & 查看更新时间
+
+**在主库上进行show processlist;可以知道binlog备份是一个异步复制的过程
+
+思考案例：早上2点利用xtrabackup备份的一个库200G,下午4点时出现数据损坏,现在有50G binlog,大概50个日志文件，如何能快速无错误的把这个库恢复起来？
+全备+增备+util
+
+如果删除了一个表
+全备+增备+util
+
+如果删除了一个库
+全备+增备+util
+
+
+
+可以通过mysqlfrm脚本解析出表的结构

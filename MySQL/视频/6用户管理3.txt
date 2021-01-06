@@ -1,0 +1,38 @@
+禁止验证控制
+密码忘了
+--skip-grant-tables无需用户和密码登录，登录后禁止使用create user,grant,revoke,set password等
+建议配合：禁止提供网络验证使用--skip-networking
+重要的mysql客户端程序
+mysql/mysqladmin/mysqldump(mydumper)/mysqlbinlog
+不需要但需知道
+mysqlimport 将文件加载到数据库（有点load data的感觉）
+mysqlsalp 官方自带的简单压力测试工具
+
+--长参数
+-短参数
+
+设置不用密码登陆mysql_config_editor
+mysql_config_editor set --login-path=client(端口号) --host=localhost（可以远程建议不用） --user=root --socket=/tmp/mysql.sock --password
+在~下        乱码了    用reset
+mysql_config_editor print --all查看
+mysql --login-path=3306直接可以登录
+mysql --help
+
+mysql的替代产品mycli
+
+导入某个库 time mysql -S /tmp/mysql.sock -p数据库用户名 < 数据库名.sql
+screen执行长脚本,tmux（面试加分项）
+
+mysql的提示符   prompt放到[mysql]或[client]
+
+推荐mysql workbench客户端工具
+safe-updates防止误操作my.cnf  [mysql]
+You are using safe update mode and you tried to update a table without a WHERE that uses a KEY column.
+update test1.sbtest1 set c='lll' where 1=1 limit 100;（不加limit不超过1000行的更新）
+delimiter 在写存储过程的时候经常用，设置结束分隔符
+
+mysql输入终结及输出
+常用终结符； \g  \G  
+终止语句\c
+退出 \q quit exit
+

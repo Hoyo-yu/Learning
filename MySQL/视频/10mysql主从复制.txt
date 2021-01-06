@@ -1,0 +1,86 @@
+复制环境搭建row+gtid
+主库备份：time /usr/local/mysql/bin/mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p -A >db3306-`date +%Y%m%d`.sql;
+--master-data=2添加注释
+从库拷贝
+time mysql -S /tmp/mysql.sock -p <./db3306-20201026.sql
+
+在主库建立一个主从复制的账号repl@'%';
+grant replication slave on *.* to repl@'%';
+
+如果出现ERROR 1840 (HY000) at line 24: @@GLOBAL.GTID_PURGED can only be set when @@GLOBAL.GTID_EXECUTED is empty.
+
+**flush privileges导完数据，建用户后
+去从库reset master登录mysql执行reset master；
+去从库执行
+change master to master_host='172.16.1.3',master_port=3306,master_user='repl',master_password='luling1012',master_auto_position=1;
+start slave;
+start slave sql_thread;**
+show master status\G;
+show slave status\G;
+
+从库show slava status\G;
+Retrieved_Gtid_Set: fbe2bbbd-223a-11eb-9039-000c297c33d3:1-2119
+Executed_Gtid_Set: fa2eb5a1-21ce-11eb-a64f-000c293e8372:1-2,从库自己执行的事务
+fbe2bbbd-223a-11eb-9039-000c297c33d3:1-2119从主库同步的binlog
+
+
+show master status查看到两个uuid一个是自己的，一个是从别的地方导入的。
+show slave status报1236错误 可以通过注册空事务 人为搞一个gtid    告诉之前的binlog已经同步过了（binlog过期）
+注册空事务的方法(在从库)  
+stop slave sql_thread;
+set gtid_next='xxxxxxxxxxx';(提示这个gtid之前的binlog已经同步过了,现在是从这个开始)
+gebin;commit;
+set gtid_next=automatic;
+start slave (sql_thread);
+
+show binary logs;
+show global variables like '%rep%';
+expire_logs_days参数可以自动清理过期binlog,默认是0不清理，这里设置为7    flush  logs让它生效
+
+查看binlog日志内容：show binlog events in 'mysql-bin.000003' from (位置);
+show global variables like "%gtid%";
+gtid_purged清除binlog后，gtid_purge自己更新到删除的那个binlog最大的gtid,之前的已经记录了（其实在主从复制设置完后，除最后一个mysql-bin.0000xx,都可以删除，因为已经将之前的记录同步到了从库了）
+gtid_executed表示已经执行了的gtid
+
+半同步5.5after_commit（可能存在主从读不一致的问题）
+主库 user1 insert ti(3);  user1没有得到反馈
+主库 user2 select t1; 有3这个数据
+从库 user2 select t1;读不到3这个数据
+
+增强半同步5.7rpl_semi_sync_master_wait_point=after_sync（5.7后默认）
+也可能存在主从不一致（主从数据不一致）：主库写完binlog后，主库重启，没有将binlog同步到从库，也就是说没来的及传binlog到从库，主库挂了。
+出库写完binlog前加假如gtid是1-10，从库保持连接也是1-10，但主库重启后变成了1-11，重启的时候从库升级为主库M（S）1-10，但此时的S（M）是1-11，导致了主从的不一致。
+Master故障处理策略：等待主库起来，继续做主库；主库故障后快速切换，原主库做从库，通过gtid对比，把多的数据清理掉。
+
+MGR的做法是没复制过去的binlog event 给truncate掉（建议）,边界事务,没有到ok,没收到响应,没写成功的
+
+(增强)半同步会存在延迟：半同步只是IO_thread和主库保持同步，sql_thread无要求
+只是保证主库上提交的事务一定会被传到从库的relay-log，但是sql_thread有没有应用完没法担保，所以就会存在延迟。
+
+两个概念：幻读，mutex锁
+
+dump thread
+5.7前串行user session1:write binlog--dump thread1:read binlog（一个读一个写），user session2:write binlog--dump thread2:read binlog
+5.7及以后有多个dump thread并行(多个)读，还是串行写（mutex锁）（一个一个写）dump thread1，dump thread2,(同时进行，因为是两个不同的线程)，write binlog,write binlog
+
+引擎层：redo,undo,并发控制等
+server：binlog
+
+IO_thread
+主库独立了ack_thread，性能并没差
+
+sql_thread
+基于database级别并行（mysql5.6）
+基于事务级别并行（5.7）binlog group commit
+基于行级别并行（8.0）writeset（有点串行写的意思）
+
+8.0的DDL和DML语句可以继续沿用，但DCL有区别
+
+复制选择
+异步复制           row+gtid          5star           适用于网络不好，异域复制，对性能比较高，数据一致性有限
+半同步复制        row+gtid          3star           过渡产品
+增强半同步        row+gtid          5star           金融环境，对数据一致性要求高  
+MGR(mysql group replication)       row+gtid          4star         未来的趋势，mysql8.0中官方主推的方案，对复制的增强
+
+gtid_executed >= gtid_purged
+

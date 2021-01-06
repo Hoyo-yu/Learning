@@ -1,0 +1,98 @@
+生产中MYSQL备份恢复的形式
+在线基于逻辑备份  mysqldump & mydumper(json的兼容性问题)
+在线物理备份  xtrabackup
+增量备份  mysql binary log
+
+**建一个从库  在新的从库上备份,一致性备份会锁表
+
+mysqldump备份的过程可以通过general.log查看
+set global general_log=on;
+set global general_log_file=/data/mysql3306/logs/general.log;
+
+备份全表
+time mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p -A >db3306-`date +%Y%m%d`.sql
+
+备份单表
+mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p test1 sbtest1 > sbtest1.sql 
+
+备份某个库所有表小于1万行的数据
+mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p test1 --where="1=1 limit 10000" > test1_10000.sql
+
+mysqldump最佳实践
+mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p -A > $dbname-$port-`date +%Y%m%d`.sql
+mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p -A | gzip > $dbname-$port-`date +%Y%m%d`.sql
+
+还原
+time mysql -S /tmp/mysql.sock -p < xxxx.sql
+
+推荐用
+pigz替代gzip()
+mydumper(需要手动锁表,对json的兼容性不好)替换mysqldump
+
+基于xtrabackup备份及原理
+show engine innodb status\G;     LSN
+yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm
+yum install -y perl-DBD-MySQL per-DBI perl-Time-HiRes libaio*
+yum install -y percona-xtrabackup-24.x86_64
+
+备份并将其编译执行的过程放到一个文件
+innobackupex --defaults-file=/etc/my.cnf --user=root --password=luling1012 /data/backup/xtrabackup-bak/ 2>&1 |tee xtrabackup.log
+
+innobackupex --apply-log /data/backup/xtrabackup-bak/2020-11-23_23-46-49/
+
+还原
+
+关闭mysql服务
+mysqladmin -S /tmp/mysql.sock -p shutdown
+
+cd /data/mysql3306/
+mv data data_bak
+mv logs logs_bak
+chown -R mysql.mysql /data
+将xtrabackup备份的文件恢复至/data/mysql3306/{data,logs}
+innobackupex --defaults-file=/etc/my.cnf --copy-back /data/backup/xtrabackup-bak/2020-11-23_23-46-49/
+**并将binlog日志备份到log-bin的目录下
+
+mysqld --defaults-file=/etc/my.cnf &
+
+**注意如果已经配好主从,需要在从库中stop slave;然后再start slave;
+cat xtrabackup_binlog_info的值是show master status;
+cat xtrabackup_binlog_pos_innodb的值是 redo last commit(filename,pos)的位置
+
+不一致的情况
+大小的判断(同一个binlog,pos大则大;不是同一个binlog,binlog大则大)
+xtrabackup_binlog_info>xtrabackup_binlog_pos_innodb
+1：flush logs;
+2：事务引擎和非事务引擎的数据更新(非事务引擎的表有更新)
+
+xtrabackup_binlog_info<xtrabackup_binlog_pos_innodb
+1：reset master;
+**有gtid根本不需要管这些
+
+innobackupex --apply-log --use-memory=1G /data/backup/xtrabackup-bak/2020-11-23_23-46-49/
+use-memory==innodb_buffer_pool_size
+use-memory默认是100M
+
+
+备份是用于灾难恢复 误操作 历史数据审查,高可用可用于故障恢复
+备份时间最好在一个小时内完成,最好存两份
+
+备份策略：
+1每天全备(核心数据)
+2大于1T的库,考虑拆分或使用tokudb压缩存储,再大的库使用延迟复制,根据需要归档
+增量：不建议用xtrabackup做增备
+3每个实例binlog保存3天,实时备份binlog(可以达到还原到出错的最近时间点)
+4数据存放：HDFS分布式文件存放系统&CEPH(扩容会存在问题,重新加集群,不要在原集群加)
+5备份最好加密存放(压缩加密,或利用openssh加密)
+
+**备份记录信息
+开始时间,完成时间
+备份的大小
+apply-log是不是成功
+和昨天对比数据变化情况
+
+备份恢复测试：
+每天5-10个实例抽样
+抽样的方法：提前埋点,还原后能不能拉起来,数据大小是否有问题,对表做checksums(数据量是否一致)
+
+最好备份到本地先,除非你网络是万兆网,可以用--steam流式备份到其他机器

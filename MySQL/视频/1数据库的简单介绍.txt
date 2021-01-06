@@ -1,0 +1,50 @@
+﻿Percona紧跟随官方MySQL，一个与官方MySQL进行0变更互换的版本。
+有大量的自主产品：增强MySQL、xtrabackup等
+MariaDB---TDSQL（腾讯），二次开发
+AliSQL
+TiDB
+Facebook 开发的新功能与MySQL官方交流
+GA 生产版本  官网下载
+wget https://cdn.mysql.com/archives/mysql-5.7/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz
+安装前的优化
+http://wubx.net/linux-performance-tuning-tips-mysql/
+http://wubx.net/21ways-optimize-mysql/
+mysql不建议设置自动启动
+
+docker exec -it 容器名 /bin/bash
+ldd /usr/local/mysql/bin/mysqld
+openfile 65535
+ulimit -n 65535
+
+ntpdate cn.pool.ntp.org 同步时间
+screen执行长脚本,tmux（面试加分项）
+
+防火墙关闭或开放常用的端口
+
+关闭firewalld防火墙
+systemctl stop firewalld
+systemctl mask firewalld
+systemctl disable firewalld
+
+安装iptables
+yum install iptables-services
+
+开放常用的端口
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
+iptables -A INPUT -p tcp --dport 3307 -j ACCEPT
+iptables -A INPUT -p tcp --dport 3308 -j ACCEPT
+修改iptables配置后保存/usr/libexec/iptables/iptables.init save
+chkconfig iptables on设为开机自启
+
+systemctl start/status/stop/restart iptables
+systemctl enable iptables
+
+
+SElinux关闭
+getenforce 查看状态
+setenforce 0 临时关闭
+永久关闭 vim /etc/sysconfig/selinux  修改selinux=disabled

@@ -1,0 +1,290 @@
+1检索不同的行—distinct
+eg:select distinct vend_id from products;
+
+2限制结果的输出—limit
+eg:select prod_name from products limit 5;
+eg:select prod_name from products limit 5,5;
+
+3使用完全限制的表名
+eg:select products.prod_name from test.products;
+
+4排序order by + desc
+eg:select prod_id,prod_price,prod_name from products order by prod_price desc,prod_name;
+
+4.1order by + limit
+eg:select prod_price from products order by prod_price desc limit 1;
+
+5使用where过滤
+eg:select prod_name,prod_price from products where prod_price > 2.50;
+注意:order by放于where后,limit放于order by后
+eg:select vend_id,prod_name from products where vend_id !=3;
+eg:select prod_name,prod_price from products where prod_price between 5 and 10;
+eg:select prod_name from products where prod_price is null;
+
+6组合where子句
+eg:select prod_id,prod_price,prod_name from products where vend_id = 1003 and prod_price <=10;
+
+7or操作符
+eg:select prod_name,prod_price from products where vend_id = 1002 or vend_id = 1003;
+
+8计算次序问题and>or
+eg:select prod_name,prod_price from products where (vend_id = 1002 or vend_id = 1003) and prod_price >= 10;
+
+9in操作符
+eg:select prod_name,prod_price from products where vend_id in (1002,1003) order by prod_name;
+eg:select prod_name,prod_price from products where (vend_id = 1002 or vend_id = 1003) order by prod_name;
+
+10not操作符
+eg:select prod_name,prod_price from products where vend_id not in (1002,1003) order by prod_name;
+
+11like模糊查询(%,_)
+eg:select prod_id,prod_name from products where prod_name like '_ ton anvil';#_只匹配一个字符
+eg:select prod_id,prod_name from products where prod_name like '% ton anvil';
+
+12regexp和正则表达式
+eg:select prod_name from products where prod_name regexp '1000' order by prod_name;
+eg:select prod_name from products where prod_name regexp '1000|2000|3000' order by prod_name;
+eg:select prod_name from products where prod_name regexp '[123] ton' order by prod_name;
+eg:select prod_name from products where prod_name regexp '[^123] ton' order by prod_name;
+eg:select prod_name from products where prod_name regexp binary '[^123] ton' order by prod_name;
+eg:select prod_name from products where prod_name regexp '.000' order by prod_name;#.匹配任意字符
+eg:select prod_name from products where prod_name regexp '\\.' order by prod_name;#\\匹配特俗字符
+eg:select prod_name from products where prod_name like '%1000%' order by prod_name;
+eg:select prod_name from products where prod_name like '1000' order by prod_name;
+注意:区分大小写用binary
+
+13匹配字符类
+[:alnum:]   任意字母和数字(同[a-zA-Z0-9])
+[:alpha:]    任意字符(同[a-zA-Z])
+[:blank:]    空格和制表(同[\\t])
+[:cntrl:]     ASCII控制字符(ASCII 0到31和127)
+[:digit:]     任意数字(同[0-9])
+[:graph:]   与[:print:]相同,但不包括空格
+[:lower:]    任意小写字母(同[a-z])
+[:print:]     任意可打印字符
+[:punct:]   既不在[:alnum:]又不在[:cntrl:]中的任意字符
+[:space:]   包括空格在内的任意空白字符(同[\\f\\n\\r\\t\\v])
+[:upper:]   任意大写字母(同[A-Z])
+[:xdigit:]    任意十六进制数字(同[a-fA-F0-9])
+
+14重复元字符
+*             0个或多个匹配
++            1个或多个匹配(等于{1,})
+?             0个或1个匹配(等于{0,1})
+{n}          指定数目的匹配
+{n,}         不少于指定数目的匹配
+{n,m}      匹配数目的范围(m不超过255)
+
+15定位符
+^             文本的开始
+$             文本的结尾
+[[:<:]]       词的开始
+[[:>:]]       词的结尾
+eg:select prod_name from products where prod_name regexp '\\([0-9] sticks?\\)' order by prod_name;
+eg:select prod_name from products where prod_name regexp '[[:digit:]]{4}' order by prod_name;
+eg:select prod_name from products where prod_name regexp '^[0-9\\.]' order by prod_name;
+
+16concat()拼接函数和使用别名as
+eg:select concat(vend_name , '('vend_country ')') as xxx from vendors order by vend_name;
+
+17执行算术计算(+-*/)
+eg:select prod_id , quantity , item_price , quantity*item_price as expanded_price from orderitems where order_num = 20005;
+
+18使用函数文本处理函数
+(1)文本处理函数
+Left()               返回串左边的字符
+Length()          返回串的长度
+Locate()           找出串的一个子串
+Lower()            将串转换为小写
+LTrim()            去掉串左边的空格
+Right()             返回串右边的字符
+RTrim()           去掉串右边的空格
+SubString()     返回子串的字符
+Upper()           将串转换为大写 
+eg:select vend_name,Upper(vend_name) as vend_name_upcase from vendors order by vend_name;
+(2)日期和时间处理函数
+AddDate()        增加一个日期(天、周等)
+AddTime()        增加一个时间(时、分等)
+CurDate()          返回当前日期
+CurTime()         返回当前时间
+Date()               返回日期时间的日期部分
+DateDiff()          计算两个日期之差
+Date_Add()        高度灵活的日期运算函数
+Date_Format()   返回一个格式化的日期或时间串
+Day()                 返回一个日期的天数部分
+DayOfWeek()     对于一个日期,返回对应的星期几
+Hour()               返回一个时间的小时部分
+Minute()            返回一个时间的分钟部分
+Month()             返回一个日期的月份部分
+Now()                 返回当前日期和时间
+Second()            返回一个时间的秒部分
+Time()               返回一个日期时间的时间部分
+Year()                返回一个日期的年份部分
+eg:select cust_id, order_num from orders where Date(order_date) between '2005-09-01' and '2005-09-30';
+eg:select cust_id, order_num from orders where Year(order_date) =2005 and Month(order_date)=9;
+(3)数值处理函数
+Abs()                 返回一个数的绝对值
+Sqrt()                返回一个数的平方根
+Mod()               返回除操作的余数
+Pi()                    返回圆周率
+
+19聚集函数
+AVG()              返回某列的平均值
+eg:select avg(prod_price) as avg_price from products;
+eg:select avg(prod_price) as avg_price from products where vend_id=1003;
+COUNT()         返回某列的行数
+count(*)          不管表列中包含的是空值还是非空值.
+count(列名)      对特定列具有值得行进行计数,忽略NULL值
+eg:select count(*) as num_cast from customers;
+eg:select count(cust_email) as num_cast from customers;
+MAX()             返回某列的最大值,要求指定列名,忽略NULL值
+eg:select max(prod_price) as max_price from products;
+MIN()              返回某列的最小值,要求指定列名,忽略NULL值
+eg:select min(prod_price) as min_price from products;
+SUM()             返回某列值之和,忽略NULL值
+eg:select sum(item_price*quantity) as total_price from orderitems where order_num = 20005;
+DISTINCT        只包含不同的值,必须使用列名,可以与count(列名)使用
+eg:select avg(distinct prod_price) as avg_price from products where vend_id = 1003;
+eg:select count(distinct order_num) from orderitems;
+
+20组合聚集函数
+eg:select count(*) as num_items, min(prod_price) as price_min,max(prod_price) as price_max,avg(prod_price) as price_avg from  products;
+
+21数据分组where(特定规则)、group by(创建分组) 、having(过滤分组)、order by(排序)
+(1)where特定规则,过滤行
+eg:select count(*) as num_prods from products where vend_id = 1003;
+(2)group by创建分组,GROUP BY子句必须出现在WHERE子句之后,ORDER BY子句之前.
+eg:select vend_id,count(*) as num_prods from products group by vend_id;
+(3)having过滤分组
+eg:select cust_id,count(*) as orders from orders group by cust_id having count(*)>2;
+
+22联结(join)表
+外键(foreign key) 外键为某个表中的一列,它包含另一个表的主键值,定义了两个表之间的关系.
+eg:select vend_name,prod_name,prod_price from vendors,products where vendors.vend_id = products.vend_id order by vend_name,prod_name;
+等值联结和内部联结
+eg:select vend_name,prod_name,prod_price from vendors inner join products on vendors.vend_id = products.vend_id order by vend_name,prod_name;
+外部联结
+eg:select customers.cust_id,orders.order_num from customers.cust_id Left outer join orders on customers.cust_id = orders.cust_id;
+#ANSI SQL规范首选这种
+笛卡儿积(cartesian product) 由没有联结条件的表关系返回的结果为笛卡儿积.检索出的行的数目将是第一个表中的行数乘以第二个表中的行数.
+eg:select vend_name,prod_name,prod_price from vendors,products order by vend_name,prod_name;
+**应该保证所有联结都有where子句,否则MySQL将返回比想要的数据更多的数据,同理要保证where子句的正确性.
+
+23组合查询(union)
+union自动去除了重复的行,如果需要的话则使用union all
+eg:select vend_id,prod_id,prod_price from products where prod_price <=5 union select vend_id,prod_id,prod_price from products where vend_id in (1001,1002);
+等价于
+eg:select vend_id,prod_id,prod_price from products where prod_price <=5 or vend_id in (1001,1002);
+
+24全文本搜索
+
+25插入数据insert
+1)插入完整的行
+#提高整体性能,数据库经常被多个客户访问,对处理什么请求以及用什么次序处理进行管理是MySQL的任务.insert操作可能很耗时(特别是有很多索引需要更新时),而且它可能降低等待处理的select语句的性能.
+#如果数据检索是重要的(通常是这样)可以通过再insert和into之间添加关键词low_priority,指示MySQL降低insert语句的优先级,insert low_priority into
+#null(无值或空值)和默认值可以省略
+eg:insert into customers values(null,'Pep E .LaPew','100 Main Street','Los Angeles','CA','90046','USA',null,null);
+eg:insert into customers(cust_id,cust_name,cust_address,cust_city,cust_state,cust_zip,cust_country,cust_contact,cust_email) values (null,'Pep E .LaPew','100 Main Street','Los Angeles','CA','90046','USA',null,null);
+2)插入行的一部分
+3)插入多行
+多条insert语句同时执行;或者
+eg:insert into customers values(null,'Pep E .LaPew','100 Main Street','Los Angeles','CA','90046','USA',null,null),(null,'Pe E .LaPew','10 Main Street','Los Angeles','CA','90045','USA',null,null);
+4)插入某些查询的结果
+eg:insert into customers(cust_id,cust_name,cust_address,cust_city,cust_state,cust_zip,cust_country,cust_contact,cust_email) select cust_id,cust_name,cust_address,cust_city,cust_state,cust_zip,cust_country,cust_contact,cust_email from custnew;
+#insert select中的列名,为简单起见,这个例子在insert和select语句中使用了相同的列名,但是不一定要求列名匹配,事实上,MySQL甚至不关心select返回的列名,它使用的是列的位置,因此这对于使用不同列名的表中导入数据时非常有用的.
+
+26更新数据(对列操作)update
+1)更新表中特定的行(where)
+eg:update customers set cust_email = 'elmer@fudd.com' where cust_id = 10005;
+#更新多列数据
+eg:update customers set cust_name = 'The Fudds',cust_email = 'elmer@fudd.com' where cust_id = 10005;
+2)更新表中所有行
+#谨慎操作
+eg:update customers set cust_email = 'xxxx';
+3)删除某一列的值,可设置它为null(假如表定义允许null值)
+eg:update customers set cust_email = null where cust_id = 10005;
+
+27删除数据(对行操作)delete
+1)从表中删除特定的行(where)
+eg:delete from customers where cust_id = 10005;
+2)从表中删除所有行
+#谨慎操作
+eg:delete from customers;
+#更快的删除
+eg:truncate table customers;
+#实际上是删除原表,并重新创建一个表结构一样的新表.
+
+28更新和删除的指导原则
+1)除非确实打算更新和删除每一行,否则绝对不要使用不带where子句的update和delete语句
+2)保证每个表都有主键
+3)在对update和delete语句使用where子句前,应该先用select进行测试,保证它过滤的是正确的记录,以防编写的where子句不正确
+4)使用强制实施引用的完整性的数据库,这样MySQL将不允许伤处具有和其他表相关联的数据的行
+
+28创建和操纵表
+创建表(create table)
+primary key
+auto_increment
+default子列设定默认值
+指定引擎和字段格式
+**外键不能跨引擎
+操纵表
+alter table,更新表定义使用,小心使用alter table,应该在使用前做一个完整的备份(模式和数据的备份),数据表的更改不能撤销,如果增加了不需要的列,可能不能删
+除它们.类似地,如果删除了不应该删除的列,可能会丢失该列中的所有数据.
+
+复杂的表结构更改一般需要手动删除过程,它涉及以下步骤:
+用新的列布局创建一个新表;
+使用INSERT SELECT语句,如果有必要,可使用转换函数和计算字段;
+检验包含所需数据的新表;
+重命名旧表(如果确定,可以删除它);
+用旧表原来的名字重命名新表;
+根据需要,重新创建触发器、存储过程、索引和外键.
+
+drop table,删除表
+rename table tablename to tablename1,更新表
+
+29使用视图
+为什么使用视图?
+重用SQL语句.
+简化复杂的SQL操作.在编写查询后,可以方便地重用它而不必知道它的基本查询细节.
+使用表的组成部分而不是整个表.
+保护数据.可以给用户授予表的特定部分的访问权限而不是整个表的访问权限.
+更改数据格式和表示.视图可返回与底层表的表示和格式不同的数据.
+
+在视图创建之后,可以用与表基本相同的方式利用它们.可以对视图执行SELECT操作,过滤和排序数据,将视图联结到其他视图或表,甚至能添加和更新数据
+
+重要的是知道视图仅仅是用来查看存储在别处的数据的一种设施.视图本身不包含数据,因此它们返回的数据是从其他表中检索出来的.
+在添加或更改这些表中的数据时,视图将返回改变过的数据.
+
+性能问题:因为视图不包含数据,所以每次使用视图时,都必须处理查询执行时所需的任一个检索.如果你用多个联结
+和过滤创建了复杂的视图或者嵌套了视图,可能会发现性能下降得很厉害.因此,在部署使用了大量视图的应用前,应
+该进行测试.
+
+视图的规则和限制:
+与表一样,视图必须唯一命名（不能给视图取与别的视图或表相同的名字）.
+对于可以创建的视图数目没有限制.
+为了创建视图,必须具有足够的访问权限.这些限制通常由数据库管理人员授予.
+视图可以嵌套,即可以利用从其他视图中检索数据的查询来构造一个视图.
+ORDER BY可以用在视图中,但如果从该视图检索数据SELECT中也含有ORDER BY,那么该视图中的ORDER BY将被覆盖.
+视图不能索引,也不能有关联的触发器或默认值.
+视图可以和表一起使用.例如,编写一条联结表和视图的SELECT语句.
+
+使用视图:
+视图用CREATE VIEW语句来创建.
+使用SHOW CREATE VIEW viewname as;来查看创建视图的语句.
+用DROP删除视图,其语法为DROP VIEW viewname.
+更新视图时,可以先用DROP再用CREATE,也可以直接用CREATE ORREPLACE VIEW.如果要更新的视图不存在,则第2条更新语句会创
+建一个视图;如果要更新的视图存在,则第2条更新语句会替换原有视图.
+
+**视图的最常见的应用之一是隐藏复杂的SQL,这通常都会涉及多表联结.
+
+更新视图:
+通常,视图是可更新的（即,可以对它们使用INSERT、UPDATE和DELETE）.更新一个视图将更新其基表（可以回忆一下,视图本身没有数据）.如果你对视图增加或删除行,实际上是对其基表增加或删除行.
+但是,并非所有视图都是可更新的.基本上可以说,如果MySQL不能正确地确定被更新的基数据,则不允许更新（包括插入和删除）.这实际上意味着,如果视图定义中有以下操作,则不能进行视图的更新:
+分组（使用GROUP BY和HAVING）;
+联结;
+子查询;
+并;
+聚集函数（Min()、Count()、Sum()等）;
+DISTINCT;
+导出（计算）列.
+

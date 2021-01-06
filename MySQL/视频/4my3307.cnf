@@ -1,0 +1,130 @@
+[mysql]
+socket=/tmp/mysql3307.sock
+prompt="\u@\\h:\\p [\\d]>"
+
+[mysqld]
+user=mysql
+socket=/tmp/mysql3307.sock
+server_id=1
+port=3307
+
+master_info_repository=TABLE
+relay_log_info_repository=TABLE
+binlog_checksum=NONE
+log_slave_updates=ON
+transaction_write_set_extraction=XXHASH64
+
+loose-group_replication_group_name="a5a28356-037e-41d5-93fe-9d11c1809223"
+loose-group_replication_start_on_boot=off
+loose-group_replication_local_address="172.16.1.3:33307"
+loose-group_replication_group_seeds="172.16.1.3:33307,172.16.1.3:33308,172.16.1.3:33309"
+loose-group_replication_bootstrap_group=off
+loose-group_replication_single_primary_mode=FALSE
+loose-group_replication_enforce_update_everywhere_checks= TRUE
+
+#binlog
+binlog-format=ROW
+binlog_cache_size=1M
+max_binlog_size=200M
+max_binlog_cache_size=2G
+sync_binlog=1
+expire_logs_days=10
+
+binlog_row_image = full
+gtid_mode = on
+enforce_gtid_consistency = on
+binlog_group_commit_sync_delay = 100
+binlog_group_commit_sync_no_delay_count = 10
+binlog_order_commits = off
+#transaction_write_set_extraction = on
+
+binlog_transaction_dependency_tracking = COMMIT_ORDER
+binlog_transaction_dependency_history_size = 25000
+
+#path settings
+
+socket=/tmp/mysql3307.sock
+basedir=/usr/local/mysql
+datadir=/data/mysql3307/data
+log_bin=/data/mysql3307/logs/mysql-bin
+relay_log=/data/mysql3307/logs/relay
+log_error=/data/mysql3307/logs/err.log
+slow_query_log_file = /data/mysql3307/logs/slow.log
+innodb_undo_directory = /data/mysql3307/logs/
+tmpdir=/tmp
+pid-file=/tmp/mysqld/mysqld3307.pid
+
+#basic settings
+max_connections = 2000
+max_connect_errors = 3000
+interactive_timeout = 1800
+wait_timeout = 1800
+skip_name_resolve = 1
+character-set-server=utf8
+default-storage-engine=innodb
+lower_case_table_names=0
+sql_mode ="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER"
+init-connect='SET NAMES utf8'
+max_allowed_packet=64M
+
+#log settings
+slow_query_log = 1
+log_slow_admin_statements = 1
+log_slow_slave_statements = 1
+log_throttle_queries_not_using_indexes = 10
+long_query_time = 1
+log_queries_not_using_indexes=ON
+
+
+#session buffer settings
+join_buffer_size = 32M
+tmp_table_size = 32M
+read_buffer_size = 8M
+read_rnd_buffer_size = 16M
+sort_buffer_size = 16M
+max_allowed_packet = 16M
+thread_cache_size = 200
+thread_stack = 256K
+
+#innodb settings
+innodb_lru_scan_depth = 2000
+innodb_io_capacity = 500
+innodb_io_capacity_max = 1000
+innodb_flush_method = O_DIRECT
+innodb_file_format = Barracuda
+innodb_flush_neighbors = 1
+innodb_log_buffer_size = 16M
+innodb_purge_threads = 8
+innodb_thread_concurrency = 40
+innodb_print_all_deadlocks = 1
+innodb_strict_mode = 1
+innodb_buffer_pool_dump_pct = 40
+innodb_lock_wait_timeout = 120
+query_cache_type = OFF
+query_cache_size = 0
+event_scheduler = on
+innodb_log_files_in_group= 4
+innodb_log_file_size= 48M
+innodb_log_group_home_dir= /data/mysql3307/logs
+innodb_flush_log_at_trx_commit= 1
+innodb_undo_log_truncate = on 
+innodb_undo_tablespaces = 2
+innodb_undo_directory = /data/mysql3307/logs
+
+
+
+init_connect='SET collation_connection = utf8_unicode_ci'
+init_connect='SET NAMES utf8'
+character-set-server=utf8
+collation-server=utf8_unicode_ci
+#skip-character-set-client-handshake
+innodb_buffer_pool_size=1G
+symbolic-links=0
+sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+
+[mysqld_safe]
+pid-file=/tmp/mysqld/mysqld3307.pid
+
+[client]
+
+

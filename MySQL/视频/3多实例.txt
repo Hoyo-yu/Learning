@@ -1,0 +1,28 @@
+为什么使用多实例？
+物理机强劲，单个项目无法把资源使用完
+资源隔离，减少相互影响
+分担连接数，MySQL随着连接数上升，性能会严重下降
+更充分的利用资源
+不同业务错高峰混跑
+
+每一组主从的端口是唯一的
+mkdir mysql3307/{data,tmp,logs}
+cp /etc/my.cnf mysql3309/my3309.cnf
+sed -i 's/3306/3307/g' my3307.cnf
+
+初始化
+/usr/local/mysql/bin/mysqld --defaults-file=/usr/local/mysql/mysql3309/my3309.cnf --initialize
+启动
+/usr/local/mysql/bin/mysqld --defaults-file=/usr/local/mysql/mysql3309/my3309.cnf &
+
+查看初始化密码 log 
+修改初始化密码 alter user user() identified by "新密码";
+登录 mysql -S /tmp/mysql.sock -p
+
+多实例
+唯一的端口号
+唯一的socket文件
+唯一的datadir
+多实例的内存分配 小于
+
+ulimit -a 中open file的设定等

@@ -1,0 +1,109 @@
+MySQL高可用套路
+1基于DNS及服务发现实现高可用
+DNS推荐：Bind-DLZ,MyDNS; 监控程序：MHA(主库挂了,可以进行切换)RadonDB-Xenon,replication-manager(以Mariadb为前提开发),orchestrator;服务发现：Zookeeper,Consul,ected
+监控：zabbix,open-falcon plus,prometheus
+私有RDS方案：replication-manager+proxysql+consul,
+企业级监控解决方案：prometheus+grafana+altermanager(基于prometheus)
+2基于Proxy的实现高可用
+高性能：ProxySQL,sharding sphere;支持分库分表：DBLE;需要有代码能力：RadonDB-Xenon
+3高可用切换管理平台类
+replication-manage,orchestrator,Proxy
+4MySQL靠谱高可用技术推荐
+基于复制(row+gtid):
+异步复制
+半同步复制
+增强半同步复制
+**MGR:
+mysql router + MGR
+ProxySQL + MGR
+PXC:
+ProxySQL + PXC(流控)
+
+MHA原理及安装部署(一主多从)
+1用于解决什么问题
+MHA主要针对复制结构,保证主库的高可用
+主库挂了可能会存在以下几种情况
+   主库上binlog没来得及传输到从库上(异步复制)
+   各个从库之间执行的位置不一样,数据不一致(非GTID复制)某台从库开启增强半同步,确保binlog能传过来
+
+io_thread=sql_thread的判断条件
+io_thread.master_log_file==sql_thread.relay_master_log_file
+io_thread.read_master_log_pos==sql_thread.exec_master_log_pos
+
+MHA需要实现的脚本：
+master_ip_failover_script:主库故障切换
+master_ip_online_change_script:主库在线切换
+report_script:切换后台发送报告
+init_conf_load_script:启动初始化相关动作
+shutdown_scipt:主库故障切换中担心主库假死,调用关机命令
+secondary_check_script:确认Master是不是故障通过多网络检测
+
+MHA安装及使用：
+官方网址下载：
+https://github.com/yoshinorim/mha4mysql-manager
+https://github.com/yoshinorim/mha4mysql-node
+manager 172.16.1.5
+node1 172.16.1.3
+node2 172.16.1.4
+
+在manager：/etc/masterha/ 下添加两个配置文件app1.conf,masterha_default.conf
+app1.conf:
+[server default]
+
+#mha manager工作目录
+manager_workdir = /var/log/masterha/app1
+manager_log = /var/log/masterha/app1/app1.log
+remote_workdir = /var/log/masterha/app1
+
+[server1]
+hostname=172.16.1.3
+master_binlog_dir = /data/mysql3306/logs
+candidate_master = 1
+check_repl_delay = 0     #用防止master故障时，切换时slave有延迟，卡在那里切不过来。
+
+[server2]
+hostname=172.16.1.4
+master_binlog_dir=/data/mysql3306/logs
+candidate_master=1
+check_repl_delay=0
+
+masterha_default.conf:
+[server default]
+#MySQL的用户和密码
+user=root
+password=luling1012
+
+#系统ssh用户
+ssh_user=root
+
+#复制用户
+repl_user=repl
+repl_password= luling1012
+
+#监控
+ping_interval=1
+#shutdown_script=""
+
+#切换调用的脚本
+#master_ip_failover_script= /etc/masterha/master_ip_failover  (切换master的时候打开)
+#master_ip_online_change_script= /etc/masterha/master_ip_online_change
+
+有多个主从时,创建新的app*配置文件
+
+查看 ssh 登陆是否成功：
+masterha_check_ssh --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf
+
+查看复制是否建立好：
+masterha_check_repl --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf
+
+启动MHA：
+masterha_manager --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf > /tmp/mha_manager.log 2>&1 &
+
+关闭MHA：
+masterha_stop --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf
+
+启动状态：
+masterha_check_status --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf
+
+切换master:
+masterha_master_swith --global_conf=/etc/masterha/masterha_default.conf --conf=/etc/masterha/app1.conf --master_state=alive --new_master_host= 172.16.1.4 --orig_master_is_new_slave

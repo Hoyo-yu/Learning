@@ -1,0 +1,15 @@
+创建会话：screen -S xxx
+暂时离开会话：C+a d会话中的程序不会关闭，仍在运行。
+恢复会话：screen -r 会话id
+会话id查看：screen -ls
+关闭会话：C+d
+在会话中创建窗口：C+a c
+在会话中显示窗口列表：C+a w
+下一个窗口：C+a n
+上一个窗口：C+a p
+在第0个窗口和第9个窗口之间切换：C+a 0~9
+关闭窗口：C+a k
+
+用 screen -ls, 显式当前状态为Attached， 但当前没有用户登陆些会话。screen此时正常状态应该为(Detached)
+此时用screen -r ，怎么也登不上。最后找到解决方法：screen -D -r ＜session-id>
+-D -r 先踢掉前一用户，再登陆。

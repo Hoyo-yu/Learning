@@ -1,0 +1,105 @@
+numa要关闭 numactl --hardware
+分区要XFS   mount命令检查/dev/vdb1 on /data type xfs(rw,relatime,attr2,inode64,noquota)
+sysctl.conf vim /etc/sysctl.conf 
+net.ipv4.tcp_max_syn_backlog = 819200
+net.core.netdev_max_backlog = 400000
+net.core.somaxconn = 4096
+net.ipv4.tcp_tw_reuse=1
+net.ipv4.tcp_tw_recycle=0
+sysctl -p 是配置生效
+文件句柄&每个用户能打开的进程数vim /etc/security/limits.conf
+* soft sigpending 15087
+* hard sigpending 15087
+* soft nofile 100001
+* hard nofile 100001
+* soft nproc 15087
+* hard nproc 15087
+
+服务器上的监控：
+
+cpu info  --  dmidecode -s system-product-name
+net -- cat /proc/net/dev
+系统cpu使用 -- cat /proc/stat
+内存  --  cat /proc/meminfo
+
+pt工具pt-summary可用来观察系统的状态
+wget https://downloads.percona.com/downloads/percona-toolkit/3.2.1/binary/tarball/percona-toolkit-3.2.1_x86_64.tar.gz
+tar -xzvf percona-toolkit-3.2.1_x86_64.tar.gz -C /usr/local/
+创建一个软链或配置环境变量
+
+pt工具pt-mysql-summary可用来观察mysql的状态
+pt-mysql-summary --host=localhost --port=3306 --password=luling1012
+
+IOPS=r/s + w/s
+iostat -m -x 1
+
+df -k /  df -m
+df -i inode监控
+cat /proc/diskstats
+iostat -dxk -p 1 2
+
+MySQL的监控
+
+show global status like "%thread%";中的thread-running最大约等于cores/1.5,core/2
+innodb buffer pool的命中率：show engine innodb status\G;   Buffer pool hit rate 1000 / 1000  加内存或换硬盘
+
+select sum(data_length+index_length)/1024/1024/1024 from information_schema.tables where table_schema='test1';
+对比/data/mysql3306/data    du -sh test1  对比在15%内,如果buffer pool的命中率在100%也不需要处理
+
+
+尽量不要再主库做DDL操作
+
+表空间碎片的回收：生产环境里面一般一主两从
+某一从库停掉,利用mysqldumper备份恢复,在利用xtrabackup备份应用到另外一个从库,最后做一个主从切换
+
+连接数监控,计算每个状态的连接,计算总连接数,状态值:staatistics
+select state,connt(*) as cnt from information_schema.processlist where command!='Sleep' and id!=connection_id() and user!='system user' and user!='event_scheduler' group by state order by state;
+
+show global variables;#见variables.jpg
+show global status;#见status.jpg
+
+innodb监控
+show global variables like '%innodb%';#见innodb variables.jpg
+show global status like '%innodb%';#见innodb status.jpg
+
+一些计算 
+
+show engine innodb status;的介绍   
+1dead lock errors
+2buffer pool and memory
+
+复制监控
+Master：show master status;
+show global variables;中的
+binlog_format
+expire_logs_days
+log_bin
+sync_binlog
+
+Slave：show slave status;
+
+
+如何判断复制延迟：binlog最后的timestamp和relay最后的timestamp
+如何判断Slave上把Master传输过来的日志全部执行完？Gtid
+
+
+MGR对大事务支持不是很好,单节点写,其他节点读
+DDL&DML在单节点操作
+
+position的位置点都是用字节表示的
+
+MGR:
+节点是否健康：select member_state from replication_group_members where member_id=@@server_uuid;
+当前节点是不是可写节点：select * from performance_schema.global_variables where variable_name in ('read_only','super_read_only');
+性能监控&复制延迟：select @@global.gtid_executed;(5.7.2x)    延迟的GTID=从远处获取的GTID-本节点执行的GTID
+本节点执行队列是不是有堆积(大于0表示有延迟)
+
+
+总结：监控关注点
+cpu
+cpu load 
+网卡流量/MySQL流量
+机器磁盘情况
+MySQL连接数
+MySQL DML及SELECT数量
+innodb buffer pool命中率

@@ -1,0 +1,92 @@
+前提：有全备和binlog日志,并且drop后不要做任何操作
+因为全备后数据库可能有其他变更操作,所以全备后的binlog必须要有,才能回滚到drop之前的数据库状态.
+https://blog.csdn.net/weixin_33836223/article/details/93724924
+
+主库没挂:直接新建一个从库实例,新的从库change master to原主库(mydump或xtrabackup 全备恢复至新的从库实例)
+         设置gtid_purged,until到drop前一个gtid
+
+主库挂了:
+方法一：
+      思路：全备恢复到新的伪主库上,将binlog server同步的所有binlog拷贝到新的伪主库所在的相应目录(没有binlog的情况下,drop后不操作数据库将原有主库的binlog拷贝到新的伪主库也可以)
+            然后在新建一个从库实例(另一台主机上),然后start slave sql_thread until sql_before_gtids到drop之前的gtid信息(意思是从库同步从开始同步到该gtid所有的数据),此时可能有两种情况
+            1binlog是从000001开始的,可以不需要在从库全备恢复;2反之则需要从库全备恢复
+    示例：主库(172.16.1.3:3306)执行了drop操作,伪主库(172.16.1.3:3310)或者可以用其他主机,从库(172.16.1.5:3306)
+          特别需要注意的是：防火墙未关闭这些端口的访问
+          1利用的是mysqldump的备份来做的全备,直接在新建的伪主库导入即可
+          drop操作后flush logs,show master status;
+          查看drop操作在哪个binlog文件内
+          利用mysqlbinlog解析drop操作之前的gtid信息
+          mysqlbinlog -v --base64-output=decode-rows mysql-bin.00000x 
+
+          新建伪主库实例
+          /usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3310/my3310.cnf --initialize-insecure(无密码)
+          /usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3310/my3310.cnf &
+
+          在 /data/mysql3306/backup/ 下执行
+          time /usr/local/mysql/bin/mysqldump --master-data=2 --single-transaction -S /tmp/mysql.sock -p -A >db3306-`date +%Y%m%d`.sql;
+          time mysql -S /tmp/mysql3310.sock -p < /data/mysql3306/backup/db3306-xxxxxxxx.sql
+          /usr/local/mysql/bin/mysqladmin -S /tmp/mysql3310.sock -p shutdown(此时还是不需要密码登录的)
+
+          删除/data/mysql3310/logs/ 下的mysql-bin.*    从binlog server中将所有增量备份的binlog拷贝到/data/mysql3310/logs/ 下,并新建mysql-bin.index文件(ls /data/mysql3310/logs/mysql-bin.* > mysql-bin.index )
+          赋予权限chown -R mysql:mysql /data/
+          /usr/local/mysql/bin/mysqld --defaults-file=/data/mysql3310/my3310.cnf & 再次启动需要密码
+
+
+          /usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf --initialize-insecure(无密码)
+          /usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf &
+          在新的从库实例上恢复全备的内容
+          将全备导入到新从库实例/data/mysql3306/backup 下
+          time mysql -S /tmp/mysql.sock -p < /data/mysql3306/backup/db3306-xxxxxxxx.sql
+          /usr/local/mysql/bin/mysqladmin -S /tmp/mysql3306.sock -p shutdown
+          /usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf &
+
+          从库执行reset master;
+          change master to master_host='172.16.1.3',master_port=3310,master_user='repl',master_password='luling1012',master_auto_position=0;
+          set global gtid_purged='xxxxxxx:xxx';(告诉从库从哪个位置开始)
+          start slave io_thread;
+          start slave sql_thread until sql_before_gtids='xxxxxxxxxxxxxxxxxxx:xxx';
+          或start slave sql_thread until master_log_file='xxxxxx',master_log_pos='xxxxxx';
+          show slave status\G;(io是yes,sql是no)
+
+          将删除的库或表到处然后利用mysql workbench将导出的sql执行一遍就可以了.
+
+
+
+
+          2利用xtrabackup全备恢复(参照方法二)
+          
+
+方法二：利用sql_thread独立完成(利用原实例直接做的话,记得修改写server_id)
+1主库实例中做一个全备,然后再新增数据或变更数据,再做drop操作
+**2记得此时flush logs下,gtid和file,pos可以通过cat xtrabackup_binlog_info查看
+   **gtid用于最后的gtid_purged设置,file和pos用于最后的change master to设置
+3建一个新的从库实例,利用xtabackup恢复 chown -R mysql.mysql /data/ 启动
+(只需建相应的文件和文件夹,然后改权限就行,最后用innobackupex --defaults-file=/xxx/xxx.cnf --copy-back /xxx/)
+4先show global variables like '%relay%';查看relay日志的文件名格式
+5cp mysql-bin.xxxx 到新实例的$datadir/relay.xxxx,并修改日志文件名构建relay.index(也注意格式)
+**6启动新实例 & 设置gtid_purged(表示之前的gtid已经不需要同步了),出现报错reset master;
+7change master to relay_log_file='relay.0000xx',relay_log_pos='',master_host='任意取';(只是用于表明他是一个从库)
+8如果需要全库恢复,不需要设置过滤;如果需要对单表或单库进行过滤,可以使用下列的
+ change replication filter relicate_do_table(或replicate_do_db)=(库名或表名);
+9start slave sql_thread until sql_before_gtids='drop前的gtid信息';
+ 或start slave sql_thread until relay_log_file='xxxxx',relay_log_pos=xxx;
+ (start slave sql_thread until master_log_file='xxxxx',master_log_pos=xxx;)
+10show slave status\G;(io是no,sql是yes(or no))
+
+**在新的从库实例中将drop的那个表名更改为xxx_new;然后再导入
+
+for i in $(ls mysql-bin.0*)
+do
+  ext=$(echo $i | cut -d'.' -f2);
+  cp $i relay.$ext;
+done
+
+ls ./relay.0* > relay.index
+chown -R mysql:mysql *
+
+Slave:
+set global server_id=xxx;(在原实例中做的时候)
+set global slave_parallel_type='logical_lock';
+set global slave_parallel_workers=8;(只需重启sql_thread就生效)
+change master to ...
+start slave sql_thread until ...

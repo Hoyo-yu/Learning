@@ -1,0 +1,144 @@
+yum install –y perl­‐DBD­‐MySQL.x86_64 perl­‐IO­‐Socket-­‐SSL.noarch socat.x86_64 nc
+yum install –y openssl openssl‐devel
+yum install -y git scons gcc* gcc-c++ openssl* check cmake bison boost-devel asio-devel libaio-devel ncurses-devel readline-devel pam-devel socat perl-time-hires perl-io-socket-ssl.noarch perl-dbd-mysql.x86_64
+
+yum install rsync* -y 
+cd /usr/local/software/
+wget https://downloads.percona.com/downloads/Percona-XtraDB-Cluster-57/Percona-XtraDB-Cluster-5.7.31-31.45-3/binary/tarball/Percona-XtraDB-Cluster-5.7.31-rel34-45.3.Linux.x86_64.glibc2.12.tar.gz
+wget https://downloads.percona.com/downloads/Percona-XtraBackup-2.4/Percona-XtraBackup-2.4.21/binary/tarball/percona-xtrabackup-2.4.21-Linux-x86_64.glibc2.12.tar.gz
+tar -xzvf Percona-XtraDB-Cluster-5.7.31-rel34-45.3.Linux.x86_64.glibc2.12.tar.gz  -C /usr/local/
+tar -xzvf percona-xtrabackup-2.4.21-Linux-x86_64.glibc2.12.tar.gz -C /usr/local
+cd /usr/local
+mv Percona-XtraDB-Cluster-5.7.31-rel34-45.3.Linux.x86_64.glibc2.12/ mysql
+mv percona-xtrabackup-2.4.21-Linux-x86_64.glibc2.12 xtrabackup
+mkdir -p /data/mysql3306/{data,logs}
+echo "PATH=$PATH:/usr/local/mysql/bin"|cat >>/etc/profile
+echo "PATH=$PATH:/usr/local/xtrabackup/bin"|cat >>/etc/profile
+source /etc/profile
+ldd /usr/local/mysql/bin/mysqld 查看依赖库是否有not fund
+useradd -d /usr/local/mysql -s /sbin/nologin -U -M mysql
+chown -R mysql.mysql /data/
+chown -R mysql.mysql /usr/local/mysql/
+mv /etc/my.cnf /etc/my.cnf.bak 将系统自带的my.cnf备份
+vim /etc/my.cnf
+
+node1:
+mysqld --defaults-file=/etc/my.cnf --initialize
+mysqld_safe --defaults-file=/etc/my.cnf --wsrep-new-cluster &
+修改root密码
+set password='luling1012';
+grant process,reload,lock tables,replication client on *.* to pxc@'localhost' identified by 'luling1012';
+show global status like "%wsrep%";查看节点情况
+wsrep_cluster_status如果为non-Primary需要重启机器
+
+在/data/mysql3306/data下生成了一个grastate.dat
+vim /data/mysql3306/data/grastate.dat
+# GALERA saved state
+version: 2.1
+uuid:    6f928a90-3e40-11eb-9fa0-bae8a59c3960
+seqno:   -1
+safe_to_bootstrap: 0 #若为0,reboot,再重新启动下mysqld_safe --defaults-file=/etc/my.cnf --wsrep-new-cluster &
+
+node2:
+**先将pxc的相关设置注释掉
+mysqld --defaults-file=/etc/my.cnf --initialize
+mysqld --defaults-file=/etc/my.cnf &
+修改root密码
+退出后,将pxc的相关设置打开, mysqladmin -S /tmp/mysql.sock -p shutdown    
+mysqld_safe --defaults-file=/etc/my.cnf & 
+show global status like "%wsrep%";观察节点是否加入
+没有加入的话,修改safe_to_bootstrap为1,然后重启机器
+再mysqld_safe --defaults-file=/etc/my.cnf &,此时node2已经加入
+
+
+测试：
+1：在node1:执行创建操作并添加数据,在node2上查看数据是否存在
+2：在node2:执行创建操作并添加数据,在node1上查看数据是否存在
+
+
+[mysqld]
+#安装调试过程添加两个参数
+wsrep_debug=on
+wsrep_provider_options='debug=on'
+
+更加清晰的阅读err.log,上生产要把这两个参数给关了
+
+特别提示：如果第二节点拉不起来,可以看看节点1的err.log,innobackup.log以及第二节点的err.log
+3306 4444 4567 4568 9200
+selinux和iptables关掉
+
+DML操作会记录Xid,一个节点慢的话会影响每个节点的写入
+mysqlbinlog mysql-bin.0000xx | grep DML操作会记录Xid(事务ID)
+
+
+集群节点数 推荐[3,8]
+新节点加入,需要原来集群中的成员提供一个全量的传输
+SST传输:state snapshot transfer :mysqldump rsync xtrabackup-v2 
+IST传输:incremental state transfer :xtrabackup-v2
+
+
+wsrep_provider_options='gcache.size=1-4G';#生产中,默认128M
+gcache是Galera一个重要的功能,用于缓存当前write-set,供其他节点加入进来传输的是IST,而不用传输SST
+
+修改这个参数需要在my.cnf中添加
+loose-wsrep_provider_options="gcache.size=256M"初始化的时候就增加这个参数
+
+脑裂
+unkown command：出现的原因是及群众只有两个成员时,两个节点忽然失去联系,自己也搞不清当前的集群状态
+
+PXC运维注意事项
+
+DDL操作会在整个集群添加锁
+没有表级锁
+alter table操作,会把整个集群全部锁住,kill不掉
+解决办法：
+等待完成
+快速重启
+使用pt-online-schema-change操作
+
+集群重启(一个一个重启)
+如果一个节点长时间down掉了(离线超过1个小时),主节点又有新的写入,如何同步新数据?
+1将down掉的节点做成主节点的从库,也就是将pxc的相关参数禁用掉,利用手工xtrabackup备份全量恢复至down掉的节点
+有gtid,直接change master to 做成从库
+2stop slave;查看已经同步的数据节点情况,log_file,log_pos,以及同步到的gtid信息,reset slave all
+3去主库也就是主节点上解析已经commit的从库相关位置的Xid信息
+4复制主节点data/grastate.dat 内的内容到那个节点的/data 下,并修改seqno的值为已经同步到的Xid信息
+5pxc参数启用
+6启动新节点,show global status like "%wsrep%";观察主节点上是否已经有了新节点的信息
+
+PXC集群添加新节点如何使用IST方式避免使用SST方式传输数据(会有延迟)
+思路：
+先搭建主从复制，然后将从库加入PXC集群中。
+
+具体步骤：
+选择集群中任意一个节点A，xtrabackup生成备份。
+利用xtrabackup备份搭建从库B。
+测试主从同步是否成功。
+从库上stop slave，记录此时对应的主库binlog位置。
+通过主库上的binlog位置获取数据库xid。
+将主库A库grastate.dat拷贝到B库并修改seqno为对应的xid。
+开启B库PXC相关配置（wsrep）。
+B库start加入集群。
+
+
+作业：M->S1,M->S2    <--------->    M1->M2->M3->M1相互转化
+
+
+发现慢的节点
+show global status like 'wsrep_flow_control_sent';
+大于0并不断增长,说明该节点已经追不上其他节点
+show global status like 'wsrep_local_recv_queue_avg';
+长期不为0,说明处理较慢
+
+解决办法：适当的调整 wsrep_slave_threads4-8
+wsrep_max_ws_size或是wsrep_max_ws_rows增大点
+
+监控show global status like "%wsrep%";
+查看wsrep_cluster_state是否等于4
+wsrep_connected = on
+wsrep_relay = on
+
+需要注意的是
+禁止alter
+SST这块建议Slave->PXC
+原理图

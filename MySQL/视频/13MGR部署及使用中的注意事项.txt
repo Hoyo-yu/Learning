@@ -1,0 +1,50 @@
+GR工作的两种模型
+
+1基于single-master环境（默认模式）
+在GR配置中,默认的模式是single-master模式,在这个模式中,只有一个节点是可以进行写操作的,其他节点是开着read-only模式。
+当主节点挂了,其他节点会选举出来一个new-master,这里面看来还是一个主从结构的概念。
+
+在single-master模式中可以利用下面的SQL语句发现谁是主节点
+select * from performance_schema.global_status where VARIABLE_NAME='group_replication_primary_member';
+
+2基于multi-master模式
+需要在[mysqld]中添加
+#multi-master
+loose-group_replication_single_primary_mode=off
+loose-group_replication_enforce_update_everywhere_checks= on
+
+不管哪个模式：单节点写入,不要多节点同时写入
+multi-master优点：选主方便,缺点：性能比single-master低15%左右
+
+MGR中uuid存在空洞,每个节点都有不同的uuid区间;单节点写不存在空洞
+例如uuid:1-1000:2000-3000:4000-5000默认是100万的区间
+group_replication_gtid_assignment_block_size参数来控制
+
+流控（flow control）
+触发流控不能写,可以读
+group_replication_flow_control_mode=QUOTA
+group_replication_flow_control_applier_threshold=25000(默认),应用程序队列中触发流控制的等待事务数,即可以理解为当有25000个事务在应用程序队列中时,先同步完之前的25000个事务,存在先同步完的先等待
+group_replication_flow_control_certifier_threshold=25000(默认),指定验证者队列中触发流控制的等待事务数
+
+**MGR备份及新加节点加入前关流控
+set global group_replication_flow_control_mode='disabled';
+**延迟太大不开流控或者升级硬件
+
+复制延迟过大
+slave_parallel_type->logical_clock
+slave_parallel_workers->2-8(不超过核数)
+group_replication_compression_threshold=1000000->2000000
+
+备份：xtrabackup,mysqldump(mydumper)
+节点加入
+plugin加载
+mysqldump --master-data = 2 --single-transaction -S /tmp/mysql.sock -p -A > sql_bak.sql;
+可以加入集群的关键点：set global gtid_purged='1-xxx:...';
+start group_replication;
+
+高可用中间件ProxySQL DBLE(mycat)工具
+PXC(Percona XtraDB Cluster)高可用集群方案
+pt-osc 在线执行DDL
+
+大事务的控制(事务拆分)
+

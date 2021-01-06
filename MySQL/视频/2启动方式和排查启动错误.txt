@@ -1,0 +1,37 @@
+1、/usr/local/mysql/bin/mysqld --verbose --help查看配置文件的读取顺序，如有配置文件有相同的参数后面的会覆盖前面的
+如果前一个配置文件没有，后一个配置文件有某一设置，启动时会添加这一设置
+
+2、mysqld &启动服务
+mysqladmin -S /tmp/mysql.sock -p shutdown关闭mysql服务
+
+3、登录mysql时，先检查服务是否启动
+
+4、常见的错误
+so依赖缺失 yum install xxx.so
+初始化时datadir要非空
+Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)服务未启动
+Can't connect to local MySQL server through socket '/tmp/mysql.sock' (111)检查my.cnf里面的目录和文件是否存在
+permission denied 查看文件和文件权限   mysql:mysql
+selinux问题      getenforce,setenforce 0,vim /etc/sysconfig/selinux 设置成disable
+查看报错日志
+mysqld.pid文件没有写的权限
+my.cnf权限设为755
+
+5、yum install strace -y
+strace -ttt /usr/local/mysql/bin/mysqld 2>&1 |tee s1.log   mysqld的启动过程
+可以查看配置文件的读取顺序（加载）
+strace可以检查nginx等的启动
+
+6、不小心启动两个mysql进程，可以利用ps -eo lstart,pid,cmd | grep mysqld将时间晚的进程杀掉
+也可以cat /tmp/mysqld/mysqld.pid查看，将另一个删掉
+
+7、mysql的启动方式
+标准方式
+systemctl start mysql
+cp /usr/local/mysql/support-file/mysql.server /etc/init.d/mysql后可以采用/etc/init.d/mysql start来启动
+service mysql start
+多实例启动
+/usr/local/mysql/bin/mysqld_safe --default-file=/path/my.cnf &          5.7rpm源码安装干掉了mysqld_safe
+你把mysqld进程kill了，mysqld_safe会重新拉取（生产环境不推荐，不好检查）
+/usr/local/mysql/bin/mysqld --default-file=/path/my.cnf &
+把mysqld进程kill就真的kill了
