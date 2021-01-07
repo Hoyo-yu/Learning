@@ -1,0 +1,55 @@
+数据库反应慢排查过程：
+1当前硬件情况
+2系统和MySQL的版本及相关配置
+3CPU情况
+4内存情况
+5IO状态及pt-ioprofile查结构
+6慢SQL状态
+
+具体体现在
+1 mysql配置
+1.1 整体可以借助于pt-mysql-summary生成(percona-tools工具)
+2 操作系统方面 /var/log/message & 内核日志  vim /etc/rsyslog.conf 将内核日志存储到/var/log/kern
+2.1 硬件基本信息 可以借助pt-summary信息(percona-tools工具)
+2.2 系统CPU信息
+2.3 系统当时的磁盘IO信息
+3 MySQL监控数据
+3.1 MySQL连接数据信息
+3.2 MySQL的DML(含insert)的每秒QPS数据
+3.3 show engine innodb status\G;
+3.4 show global variables;show global status;select sleep(5);show global status;
+4 MySQL的error log
+5 对应时间点的慢日志
+
+反应慢优先看cpu状态  top  
+user(用户态进程cpu开销)过高的一般就是索引、sql执行慢的问题   去慢日志看(set global long_query_time=1;)  show processlists;
+sys(内核的CPU开销)过高numa没关,numa关了还是高则说明是连接数过高(show global status like 'Threads_running')一般小于核数的两倍
+io_wait(用于IO等待的CPU开销)iostat -m -x 1 10(IOPS和util)      pt-ioprofile
+cpu总占用=1-idle的占用
+
+
+mysql状态分析
+mysql关键配置
+innodb_buffer_pool_size
+innodb_thread_concurrency   0
+sync_binlog    M:1    S:0
+innodb_flush_log_at_trx_commit  M:1  S:2         主从切换,再调整
+long_query_time
+
+show processlists;
+cleaning up:进程执行完毕,清理战场
+opening tables:进程去打开表
+sending data:读取数据向客户端发送
+statistics:服务器收集统计类信息
+
+show global status like '%thread%';
+thread_cached
+thread_connected
+thread_created
+Threads_running
+端口重用 net.ipv4.tcp_tw_reuse=0;这是没启用  可以通过sysctl -a | grep reuse查看
+
+show engine innodb status\G
+死锁last deadclock      not started
+事务队列history list length
+命中率 innodb_buffer_pool 扩内存 清理磁盘碎片select sum(data_length+index_length)/1024/1024 from information_schema.tables where table_schema='xxx';
