@@ -1,0 +1,10 @@
+MySQL+Redis+Python+MongoDB
+
+为什么需要NoSQL？
+mysql
+   流程复杂
+   Buffer pool以page为单位
+
+Redis(瓶颈点：网卡)
+   简单,k/v结构
+   更快速

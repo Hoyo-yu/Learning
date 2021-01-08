@@ -1,0 +1,95 @@
+MySQL-python-excel+ppt
+
+MySQL DBA工作  
+1部署MySQL,高可用,数据备份
+2工单处理(线上DDL,数据查询&数据修复,SQL优化)
+3扩容&迁移(迁实例,扩实例,机器硬件故障迁移)
+4监控报警处理
+5其他(新项目,数据处理,数据恢复)
+
+痛点：
+工作量大(初始化,迁移等时间长)
+工作强度要求高(在线DDL在高并发环境,搞不好要挂,或是数据库响应增大)
+工作多样性,工作碎片时间碎片化
+需要自动化来解放苦命的DBA
+
+把服务器,操作系统初始化自动化
+部署数据库自动化
+备份,监控添加自动化
+建立主从关系,切换主库,上线变更自动化
+
+机器名：IDC-业务名-ip
+万事开头难
+如何开展自动化工作?
+1数据库重点关注
+ 数据库自动化安装,初始化主从结构
+ 高可用(Replication-manager,Consul,MHA,ProxySQL)
+ ProxySQL+MHA
+ ProxySQL+Replication-manager
+ 接入层：DNS或Consul
+2数据库备份(xtrabackup)  crontab+shell+xtrabackup(不建议shell)  ansible+saltstack+playbook
+3监控报警(zabbix) zabbix_qpi
+4在线DDL(pt-osc & ghost)
+5SQL审核,统计,优化  美团的sql-advisor
+
+慢日志收集(pt-query-digest)   Anemometer
+
+DB平台
+  API调度(http协议)
+  调度层Server(Python)
+  执行层(saltstack)
+
+server-id:ip最后一位+port
+每组数据库的端口号要全网唯一
+
+MySQL meta信息
+  元数据
+  任务运行数据上报
+
+
+1数据库安装 
+  系统标准化
+    os初始化:Bios,文件系统,网络,系统限制,目录结构
+    数据库:配置文件,部署路径
+           innodb_buffer_pool_size
+           server_id
+    复制:gtid+row && gtid+row 增强半同步
+   规范步骤标准化,先脚本化,后续再自动化
+
+2高可用
+   简单:MHA基于VIP && Keepalived + MHA
+   进阶:Proxysql+MHA
+   复杂:ProxySQL+Replication-manager+Consul
+
+架构方面:
+    DBLE: https://github.com/actiontech/DBLE
+    缺失主库高可用处理逻辑(MHA && MySQL Plus)
+标准化上面的路径及安装脚本化
+
+yaml做配置文件代替json
+
+3监控报警
+zabbix(精简指标)
+   报警短信要求:
+      给响应人员发送短信
+      同时向故障统计库写入记录&恢复后也写入记录,后续补故障分析及操作说明
+zabbix库数据结构分析
+利用TokuDB做Zabbix库
+
+4涉及到的技术
+**python
+在线系统:Django & Tornado,推荐Tornado
+执行:saltstack
+其他：
+    mysql binlog同步工具：mysqlbinlog,canal,go-mysql
+    xtrabackup备份
+    inception
+    MHA & Replication-manager
+    日志收集:ELK类工具(慢日志,错误日志收集)
+      
+5慢慢具备
+  实例申请
+  用户权限管理
+  SQL更新
+  扩容
+  ...
