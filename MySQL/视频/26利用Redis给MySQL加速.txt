@@ -4,7 +4,67 @@ MySQL+Redis+Python+MongoDB
 mysql
    流程复杂
    Buffer pool以page为单位
-
-Redis(瓶颈点：网卡)
+Redis(瓶颈点：网卡,带宽)
    简单,k/v结构
    更快速
+
+Redis使用场景：(MySQL<5000QPS,Redis>5000QPS)
+QPS:DML+SELECT操作
+1利用Redis做缓存
+    保存session
+2set去除
+3利用Redis做叫号器
+
+生产环境部署Redis注意事项
+1建议声明内存大小
+     最大不要超过10G
+     建议：1G,2G,4G,8G,10G
+2考虑数据持久化和缓存的区别
+3要不要密码
+4安全命令处理
+
+Redis支持两种类型的持久化 https://www.cnblogs.com/zxs117/p/11242026.html
+AOF运维：每天重写一次AOF(bgrewriteaof)
+原理和流程：在指定的使时间内将内存中的数据集快照写入到磁盘,保存为一个二进制文件压缩存储,fork出一个子进程,先将数据集写入到临时问及那,写入成功替换原文件
+优点：只有一个文件,方便归档,利于灾备;大数据情况下,启动和恢复时间快;可以避免服务进程进行IO操作,性能较好
+缺点：数据安全性差,如果在定时持久化前宕机,会丢失内存中的数据;大数据集时,服务器会出现短暂卡顿
+
+RDB运维:RDB压缩文件,不支持增量写入(每小时bgrewriterdb)
+原理及流程：以追加日志的方式记录服务器处理的每一个写操作(不记录查询),文本文件记录,堆内存中的数据进行实时性地持久化
+优点：安全性高;日志量较大时可以自动启用rewrite机制;通过文本文件查看修改较方便
+缺点：日志文件通常比RDB产生的文件大;恢复速度较慢;会牺牲一些性能
+
+M-S(Redis):主从都开AOF,只有从库RDB
+
+Redis主从(https://github.com/redis/redis.git)
+4.0引入一个psync2.0
+做成一个从节点
+  slaveof ip port
+  config set masterauth <password>
+配置文件
+  masterauth <password>
+从库升级为主库
+  slaveof no one
+
+最糟糕的情况：频繁切换,缓存数据会被清除
+
+redis复制原理
+第一阶段：与Master建立连接
+第二阶段：向Master发起同步请求(sync)
+第三阶段：接受Master发来的RDB数据
+第四阶段：载入RDB数据
+
+具体如下：
+Redis:R1,R2建设R1为Master,R2为Slave,在R2上执行slaveof R1_ip port过程如下：
+      R2首先会判断角色,是不是在cluster状态中,如果是,拒绝执行,如果不是,进行Slave角色
+      向Master发起sync命令,master在收到sync命令后会做两件事：
+        执行bgsave操作,形成RDB传给Slave
+        Master在接收到新的查询时,会保存在缓冲区(方便传增量)
+      Slave接受新的RDB,清空内存,加载RDB
+      Master后续的变更,通过Redis命令的协议转发给Slave,Slave执行这些命令,实现和Master的同步
+      Master/Slave不断通过一部的方式进行命令同步,达到最终的一致性
+注：Redis2.8引入psync
+
+
+redis-cluster
+https://redis.io/topics/cluster-tutorial/
