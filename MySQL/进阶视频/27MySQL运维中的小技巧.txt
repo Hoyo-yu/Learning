@@ -1,0 +1,58 @@
+1innodb表空间碎片及整理方法
+use xxx;
+select table_schema db, table_name, data_free, engine from information_schema.tables where table_schema not in ('information_schema', 'mysql')  and data_free > 0;
+1.1判断是否需要处理的情形：
+   统计一下字典文件大小,然后对比物理文件大小
+   select table_schema,sum(data_length+index_length)/1024/1024 from information_schema.tables group by table_schema;
+   du -sh /data/mysql3306/data/xxx
+   需要处理的情形：innodb buffer pool命中率下降严重,必须要处理;对比大小在15%内但是innodb buffer pool命中率几乎不变,可以不需要处理
+1.2innodb碎片的产生：
+   innodb delete的数据,留下的空间没有新数据写入
+    留下的空间,可以被insert使用,但可能不能全部用完,留下的成为碎片
+   innodb update操作,原始行放不下去,行迁移走留下的空间,如果不能被insert使用,就回成为碎片
+   可以这样说,有碎片的基本就下面两种：varchar,text
+1.3什么时间需要整理表空间
+   建议物理大小超过逻辑大小30%以上时,考虑整理表空间
+   碎片多了会造成：
+                IO增多
+                innodb buffer pool命中率降低
+                表空间物理文件大
+1.4表空间碎片整理方法：
+alter table table_name engine=innodb;
+因为线上结构大部分是主从结构,这个动作会造成主从复制延迟严重
+线上建议:pt-online-schema-change
+pt-online-scheme-change -uroot -pxxxxx --alter "engine=innodb" D=test,t=sbtest1 --execute
+为什么处理后对比任然有data_free>0,是因为会预留一部分空间用来写数据的
+
+业界新技术(facebook)
+facebook mysql,MariaDB两个版本都有实现
+[mysqld]
+innodb_defragment=1
+原理：不生成新表,不做旧数据copy,尝试把n个page上的记录紧凑合并在一起,从而让页存满记录,然后释放到完全空的页面
+
+2online DDL建议
+  如果操作失败，执行回滚操作时可能会影响服务器性能。
+  长时间运行的联机DDL操作可能导致复制滞后。在从服务器上运行之前，联机DDL操作必须在主服务器上完成运行。此外，在主服务器上同时处理的DML仅在从服务器上的DDL操作完成后才在从服务器上处理。
+  
+  如果一个操作影响的数据量非常大的话,大概率会出现error 1062(23000):Duplicate entry,可以提前将innodb_online_alter_log_max_size改大
+
+  在线DDL操作,不影响读写,但影响复制(从库延迟杀手)
+  使用online DDL一定要先查下手册,是不是只更改了字典,如果是,可以直接在线使用,如果不是,建议换路子(pt-osc&&gh-ost)
+
+3Query Rewrite Plugin
+https://blog.51cto.com/14977574/2547419
+
+4too many connection
+淡定
+不要直接改max_connection
+分析一下：
+   连接多但不活跃  可以加连接数
+   并发度怎么样
+
+5找到需要优化的SQL
+需要优化的SQL：高峰期的SQL;全天执行最多的SQL(pt-query-digist);并发度高的SQL
+优化不紧急：时间最长;执行次数不多,但时间长;占用资源最多
+
+统计SQL并发度及高峰期SQL的方法https://github.com/sysown/proxysql/wiki/ProxySQL-Read-Write-Split-(HOWTO)
+ProxySQL  mysql -h 127.0.0.1 -P6033 -uroot -pluling1012>SELECT digest,SUBSTR(digest_text,0,25),count_star,sum_time FROM stats_mysql_query_digest WHERE digest_text LIKE 'SELECT%' ORDER BY count_star DESC LIMIT 5;
+sys schema
