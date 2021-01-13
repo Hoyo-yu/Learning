@@ -145,7 +145,7 @@ innodb_purge_rseg_truncate_frequency = 64
 innodb_page_cleaners = 4
 
 # buffer pool size & instance & chunk配置(size必须是instance * chunk的整数倍)
-innodb_buffer_pool_size = 24G
+innodb_buffer_pool_size = 1G
 innodb_buffer_pool_instances  = 8
 innodb_buffer_pool_chunk_size = 256M
 
