@@ -1,0 +1,33 @@
+1压测的时候可以set sql_log_bin=0;压测完再将它设置为1
+2需要开始前创建一个test_db数据库
+3准备阶段
+sysbench --db-driver=mysql --time=120 --threads=10 --report-interval=1 --mysql-host=172.16.1.3 --mysql-port=3306 --mysql-user=root --mysql-password=luling1012 --mysql-db=test_db --tables=20 --table_size=200000 oltp_read_write --db-ps-mode=disable prepare
+
+上面命令的参数说明：
+--db-driver=mysql : 表示数据库的驱动类型,我们使用的是 MySQL 所以填mysql ,如果使用 Oracle 则填写相应的oracle
+--time=120 : 这个参数表示持续访问的时间 120秒
+--threads=10 : 表示使用10个线程模拟并发访问
+--report-interval=1 : 表示每隔一秒输出以此压测情况
+--mysql-host=172.16.1.3 --mysql-port=3306 --mysql-user=root --mysql-password=xxx : 这一块的配置,就是基本的数据库链接信息,指定数据库IP ,端口,账号密码
+--mysql-db=test_db --tables=20 --table_size=200000 : 这三个参数设置,表示指定测试的库为test_db , 同时在这个库中构建20个表,并且每个表中构建出 20万条测试数据
+oltp_read_write : 表示执行oltp 数据库的读写测试
+--db-ps-mode=disable : 禁止 ps 模式
+prepare : 表示按照命令设置去构建出我们的数据,也就是对前面所有命令的执行方案
+4综合读写测试
+sysbench --db-driver=mysql --time=120 --threads=10 --report-interval=1 --mysql-host=172.16.1.3 --mysql-port=3306 --mysql-user=root --mysql-password=luling1012 --mysql-db=test_db --tables=20 --table_size=200000 oltp_read_write --db-ps-mode=disable run
+
+5压测结果
+过程中：[ 31s ] thds: 10 tps: 350.35 qps: 5575.50 (r/w/o: 4874.81/0.00/700.69) lat (ms,95%): 36.89 err/s: 0.00 reconn/s: 0.00
+        thds:10 : 表示当前有10个线程正在压测
+        tps:350.35 : 表示当前每秒执行了 350.35 个事务
+        qps:5575.50: 表示当前每秒可以执行 5575.50 个请求
+        (r/w/o: 4874.81/0.00/700.69) : 表示在每秒 5575.50 个请求中,有 4874.81 个读请求,0.00 个写请求,700.69 个其他请求,其实就是对 qps 的细化
+        lat (ms,95%): 36.89：表示 95% 的请求的延迟都在36.89 毫秒以下
+        err/s: 0.00 reconn/s: 0.00：表示有0个请求失败,发生了0次的网络重连
+6还需重点关注的性能
+在压测过程中我们要时刻关注服务器的 CPU 、磁盘I/O 、网络负载等信息,一旦发现任何一个超出一定负荷,则不适合再继续加大线程数来压测了
+一定要注意,压测的过程是要保证机器各项指标在正常范围内的最大负载,而不是我们不断的增大 sysbench 的线程数,不关系其他指标,这样即使机器每秒抗住了很高的qps,
+但是这时候的机器已经是满负荷运行了,内存,cpu,网络带宽等都几乎被打满,这种情况机器随时可能挂掉,这时候的测压就没有什么代表性了,因为你不可能在生产者让它达到这样的负荷
+
+观察cpu和内存的使用：top
+    load average:用来表示CPU在一分钟、五分钟、十五分钟内的平均负载情况

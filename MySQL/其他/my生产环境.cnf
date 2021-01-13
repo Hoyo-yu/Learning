@@ -1,86 +1,216 @@
+[client]
+port = 3306
+
 [mysql]
-socket=/tmp/mysql.sock
-prompt="\u@\\h:\\p [\\d]>"
+port = 3306
+no_auto_rehash
+default_character_set  = utf8
+prompt  = '\u@\h [\d]> '
 
 [mysqld]
-user=mysql
-socket=/tmp/mysql.sock
-binlog-format=ROW 
-server_id=1921682014
-port=3306
-#path settings
-socket=/tmp/mysql.sock
-basedir=/usr/local/mysql
-datadir=/usr/local/mysql/data
-log_bin=mysql-bin
-relay_log=/usr/local/mysql/logs/relay
-log_error=/usr/local/mysql/logs/mysqld.log
-slow_query_log_file = /usr/local/mysql/logs/slow.log
-innodb_undo_directory = /usr/local/mysql/logs/
-tmpdir=/tmp
+port       = 3306
+user       = mysql
+server_id  = 13306
+basedir    = /usr/local/mysql
+datadir    = /data/mysql3306/data
+tmpdir     = /tmp
+socket     = /tmp/mysql3306.sock
+pid_file   = /tmp/mysqld/mysqld3306.pid
 
-#basic settings
-max_connections = 2000
-max_connect_errors = 3000
-interactive_timeout = 1800
-wait_timeout = 1800
-skip_name_resolve = 1
-character-set-server=utf8mb4
-default-storage-engine=innodb
-lower_case_table_names=0
-sql_mode ="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER"
-init-connect='SET NAMES utf8mb4'
-max_allowed_packet=64M
+character_set_server  = utf8
+skip_external_locking = 1
+skip_name_resolve     = 1
+skip_networking       = 0
+symbolic_links        = 0
+skip_slave_start      = 1
+secure_file_priv      = /tmp
 
-#log settings
+show_compatibility_56 = on
+eq_range_index_dive_limit = 100
+group_concat_max_len = 10240
+
+#innodb_flush_neighbors    = 0
+innodb_online_alter_log_max_size = 512M
+innodb_stats_persistent_sample_pages = 64
+
+#query_response_time_stats = on
+slave_rows_search_algorithms = 'INDEX_SCAN,HASH_SCAN'
+optimizer_switch='mrr=on,mrr_cost_based=off,batched_key_access=on'
+
+performance_schema_instrument = '%=on'
+performance_schema_digests_size = 40000
+performance_schema_max_table_instances = 40000
+performance_schema_max_sql_text_length = 4096
+performance_schema_max_digest_length = 4096
+
+back_log = 500
+wait_timeout=500 
+interactive_timeout = 500
+
+max_connections = 2048
+max_user_connections = 0
+max_connect_errors = 100000
+max_allowed_packet = 256M
+
+lower_case_table_names = 1
+explicit_defaults_for_timestamp = 1
+#sql_mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ERROR_FOR_DIVISION_BY_ZERO"
+sql_mode="NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+
+### 时区设置 ###
+#default_time_zone='+00:00'
+
+# query_cache conf #
+query_cache_type=0
+query_cache_size=0
+
+# errorlog conf #
+log_error = /data/mysql3306/log/error_log/error.log
+log_error_verbosity = 3
+
+# binlog conf #
+log_bin           = /data/mysql3306/log/binary_log/mysql-bin
+log_bin_index     = /data/mysql3306/log/binary_log/mysql-bin.index
+binlog_format     = ROW
+sync_binlog       = 1
+expire_logs_days  = 7
+max_binlog_size   = 256M
+binlog_cache_size = 512K
+binlog_stmt_cache_size = 32K
+binlog_rows_query_log_events = 1
+binlog_group_commit_sync_delay = 5000
+binlog_group_commit_sync_no_delay_count = 100
+
+log_bin_trust_function_creators = 1
+
+# slowlog conf #
 slow_query_log = 1
-log_slow_admin_statements = 1
-log_slow_slave_statements = 1
-log_throttle_queries_not_using_indexes = 10
 long_query_time = 1
-log_queries_not_using_indexes=ON
+#log_queries_not_using_indexes
+#min_examined_row_limit = 50000
+slow_query_log_file = /data/mysql3306/log/slow_log/slow.log
+log_timestamps = system
 
+# generallog conf #
+general_log = 0
+general_log_file = /data/mysql3306/log/general_log/general.log
 
-#session buffer settings
-join_buffer_size = 32M
-tmp_table_size = 32M
-read_buffer_size = 8M
-read_rnd_buffer_size = 16M
-sort_buffer_size = 16M
-max_allowed_packet = 16M
-thread_cache_size = 200
-thread_stack = 256K
+# relay_log conf  #
+relay_log_purge = 0
+log_slave_updates = 1
+relay_log_recovery = 1
+relay_log_purge    = 1
+relay_log = /data/mysql3306/log/relay_log/relay-bin
+relay_log_index = /data/mysql3306/log/relay_log/relay-bin.index
+relay_log_info_repository = TABLE
+master_info_repository = TABLE
+slave_parallel_type = LOGICAL_CLOCK
+slave_parallel_workers = 8 
+slave_preserve_commit_order = 1
 
-#innodb settings
-innodb_lru_scan_depth = 2000
-innodb_io_capacity = 500
-innodb_io_capacity_max = 1000
-innodb_flush_method = O_DIRECT
-innodb_file_format = Barracuda
-innodb_flush_neighbors = 1
+# gtid #
+gtid_mode = on
+enforce_gtid_consistency = 1
+binlog_gtid_simple_recovery = 1
+read_only = 1
+
+# semi sync replication #
+loose-rpl_semi_sync_master_enabled = 1
+loose-rpl_semi_sync_master_timeout = 3000
+loose-rpl_semi_sync_slave_enabled = 1
+loose-rpl_semi_sync_master_wait_point = AFTER_SYNC
+
+transaction_isolation = REPEATABLE-READ
+
+innodb_data_home_dir  = /data/mysql3306/log/ibdata_log/
+innodb_data_file_path = ibdata1:1G:autoextend
+innodb_log_group_home_dir = /data/mysql3306/log/redo_log/
+innodb_log_file_size = 2G
+innodb_log_files_in_group = 4
 innodb_log_buffer_size = 16M
-innodb_purge_threads = 8
-innodb_thread_concurrency = 40
-innodb_print_all_deadlocks = 1
-innodb_strict_mode = 1
-innodb_buffer_pool_dump_pct = 40
-innodb_lock_wait_timeout = 120
-query_cache_type = OFF
-query_cache_size = 0
-event_scheduler = on
+innodb_file_per_table=1
 
-init_connect='SET collation_connection = utf8_unicode_ci'
-init_connect='SET NAMES utf8'
-character-set-server=utf8
-collation-server=utf8_unicode_ci
-#skip-character-set-client-handshake
-innodb_buffer_pool_size=8M
-symbolic-links=0
-sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+# undo log config
+# undolog初始大小由innodb_page_size决定,默认16K page size对应undo log 出事大小为10M
+# innodb_undo_logs = 128 5.7.19已废弃，由rollback segments代替
+innodb_undo_directory = /data/mysql3306/log/undo_log/
+innodb_max_undo_log_size = 2G
+innodb_rollback_segments = 128
+innodb_undo_tablespaces = 4
+innodb_undo_log_truncate = 1
+innodb_purge_rseg_truncate_frequency = 64
+
+# 刷新脏页的线程数，默认是4；
+# 若page cleaner大于ibp_instances，则page cleaner自动设置为ibp_instances数
+innodb_page_cleaners = 4
+
+# buffer pool size & instance & chunk配置(size必须是instance * chunk的整数倍)
+innodb_buffer_pool_size = 24G
+innodb_buffer_pool_instances  = 8
+innodb_buffer_pool_chunk_size = 256M
+
+# Save & Restore Buffer Pool配置
+innodb_buffer_pool_dump_at_shutdown = 1
+innodb_buffer_pool_load_at_startup = 1
+innodb_buffer_pool_dump_pct = 40 
+innodb_buffer_pool_filename = ib_buffer_pool
+
+innodb_flush_log_at_trx_commit=1
+innodb_lock_wait_timeout = 30
+innodb_sync_spin_loops = 40
+innodb_max_dirty_pages_pct = 50
+innodb_support_xa = 1
+innodb_thread_concurrency=0
+#innodb_adaptive_max_sleep_delay = 500
+innodb_thread_sleep_delay = 500
+innodb_concurrency_tickets = 1000
+innodb_flush_method = O_DIRECT
+innodb_read_io_threads = 16
+innodb_write_io_threads = 16
+
+innodb_io_capacity = 3000
+innodb_io_capacity_max = 5000
+
+innodb_strict_mode = 1
+innodb_purge_threads = 4
+innodb_purge_batch_size = 32
+innodb_old_blocks_pct = 75
+innodb_change_buffering = all
+innodb_stats_on_metadata = OFF
+innodb_fast_shutdown = 1
+innodb_force_recovery = 0
+innodb_autoinc_lock_mode = 2
+innodb_print_all_deadlocks = 1
+innodb_numa_interleave = 1
+
+
+key_buffer_size = 8M
+table_open_cache = 4096
+table_definition_cache = 4096
+max_tmp_tables = 256
+tmp_table_size = 32M
+max_heap_table_size = 32M
+table_open_cache_instances = 8
+open_files_limit = 204800
+
+join_buffer_size = 1M
+sort_buffer_size = 2M
+read_buffer_size = 64K
+read_rnd_buffer_size = 2M
+bulk_insert_buffer_size = 128K
+
+#thread pool #
+#thread_handling = pool_of_threads
+#thread_pool_oversubscribe = 15
+
+
 
 [mysqld_safe]
-pid-file=/tmp/mysqld/mysqld.pid
+#malloc_lib= tcmalloc
+log_error = /data/mysql3306/log/error_log/error.log
+pid_file  = /tmp/mysqld/mysqld3306.pid
 
-[client]
-default-character-set=utf8mb4
+[mysqldump]
+max_allowed_packet = 64M
+
 
