@@ -1,0 +1,109 @@
+1知识体系
+  Hardware:体系结构、阵列卡、硬盘、SSD/PCIE SSD 
+  OS：初级SA及以上水平脚本能力、自动化运维、基础安全能力
+  Others：云服务、其他数据库、大数据、NoSQL、软实力(沟通、表达、情商)
+  DB：索引、MVCC、并发控制、执行计划
+
+2MySQL特点
+  不要存储大文本、图片、附件等大对象
+  不要执行复杂查询,复杂运算,或全文检索
+  不支持bitmap索引,不支持函数索引、表达式索引(5.7后用虚拟列变相解决)
+  MySQL8.0以前,没有统计直方图
+  InnoDB行锁机制处理不想Oracle那么细致
+  只支持逻辑复制,还不支持物理复制
+  性能诊断工具没有Oracle那么丰富
+  分区功能也没有Oracle完善、高效
+  DBA管理工具没有Oracle丰富
+  小事务为主,适时提交
+  用于数据持久化存储,频繁更新的状态利用rabbit MQ或NoSQL缓存
+  用于高并发事务控制,比如秒杀、订单控制
+
+3磁盘IO资源利用特点
+  undo log的IO特征：顺序读,随机写
+  redo log、binlog、relay log的IO特征：顺序写,顺序读
+  数据文件的IO特征：随机写,随机读
+  InnoDB是索引组织表(IOT)
+
+4使用/优化建议
+  尽可能使用新版本,抛弃太旧的版本
+  物理CPU主频越高越好,核数越多越好
+  每次请求尽可能快速结束,少用复杂SQL,事务及时提交/回滚
+  高并发时,更多内存可减少物理IO,提高TPS
+  关闭没什么用的query cache(QCACHE或者QC)
+  key_buffer_size设置大概8-32M就够了
+  通常专用单实例的innodb buffer pool设置物理内存的50%-70%
+  临时状态数据、KV对象数据存取在redis、memcached,最终持久化的数据才存储到MySQL中
+  加大物理内存
+  使用更高速的IO设备
+
+5MySQL的优点
+  跨平台,尤其是借助Linux平台在互联网广为传播应用
+  开源、免费,可根据实际需求改源码、打patch、增加plugin
+  官方团队给力,版本迭代更频繁,修复bug更及时,功能越来越强大
+  大量的社区资源可提供支持、帮助
+  特别适合互联网短平快的应用开发模式
+  权限控制灵活：主机/域名、用户、资源控制,8.0起增加role功能
+  SQL语法灵活,支持多种数据类型,自动隐式转化,可设置SQL_MODE调整兼容性
+  MySQL很早实现复制特性使得基于MySQL的架构设计很轻松实现架构快速扩展
+  简单上手快,易用好批量安装部署、管理,特别适合互联网爆发增长特点
+
+6MySQL的不足
+  单进程多线程模式(在高并发下,类似Oracle这种多进程的做法,其性能表现更好)
+  5.6之前无CBO特征,5.6有一定的CBO规则,5.7可调整cost rule
+  每个连接/每个query只能使用到一个逻辑CPU
+  没有连接池,随着连接数的增加性能下降严重,但有Thread pool
+  没有SQL解析缓存(library cache),还好SQL解析比较轻量级
+  online DDL虽不如Oracle强大,但也在逐渐增强,且可采用pt-osc补充
+  没有hash join,少用复杂JOIN或无索引JOIN
+  优化器比较弱,还在持续增强,8.0起支持倒叙索引、不可见索引、直方图就是不错的做法
+
+7系统安装规范
+  关闭CPU节能,设定为最大性能模式
+  关闭NUMA、C-states、C1E
+  若有阵列卡,则使用PORCE WB策略,且关闭预读
+  若使用机械盘,则所有盘组成RAID-10阵列
+  SSD可以只有两块组成的RAID-1或三块做RAID-5
+  xfs+deadline,ext4+noop
+  vm.swappiness=5(也可以设置为0)
+  vm.dirty_ratio<=20，
+  vm.dirty_background_ratio<=10
+  egrep -i 'warn|error|crit' /var/log/message
+
+8关于备份
+  定期全备(最好每天至少一次)
+  备份方式：物理+逻辑
+  binlog也要备份
+  很重要的两点：异地备份、备份文件恢复测试
+
+9需要注意的
+  show global status\G的一些关键status
+  aborted_connects
+  created_tmp_disk_tables
+  cteated_tmp_tables
+  handler_read_rnd
+  handler_read_end_next
+  innodb_buffer_pool_wait_free
+  innodb_log_waits
+  innodb_row_lock_current_waits
+  open_tables 
+  opened_tables
+  select_full_join
+  select_scan
+  sort_merge_passes
+  table_locks_waites
+  threads_cached 
+  threads_connected 
+  threads_created
+
+10文件系统参数优化
+   vim /etc/fstab 添加/dev/sda1 /data xfs defaults,noatime,nodiratime,nobarrier 0 0
+   mount -a生效
+   
+11学习方法
+  手册,重点章节诵读一遍
+  数据库基础理论知识：事务、锁、B+树
+  边学习理论,边动手实践
+  有条件的话,边学习源码边动手实践验证
+  遇到问题时,先观察日志,自主思考可能的原因.实在无果后,提供完善的情况(环境、场景、日志)向别人耐心请教
+  多用google/bing 
+  多看手册及管网等靠谱知识来源,少直接网搜

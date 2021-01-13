@@ -1,0 +1,31 @@
+1.mysql历史版本：
+1999-2003   mysql3.23
+2002-2007   mysql4.0
+2003-2009   mysql4.1
+2004-2012   mysql5.0
+2006-2014   mysql5.1
+2010-2015   mysql5.5
+2011        mysql5.6
+2013        mysql5.7
+2016        mysql8.0
+
+2.主流分支：
+ORACLE MySQL
+  官方正统
+Percona Server
+  基于InnoDB增加提升性能及易管理性补丁后,形成XtraDB引擎
+  工具：XtraBackup,pt-toolkit系列
+  和官方保持一致,基本兼容
+MariaDB
+  MySQL创始人Monty创建,目标在于替换现有的MySQL,也包含了Percona的XtraDB TokuDB在内的多种实用引擎
+  非主流分支,和官方版本区别越来越大,有很多的不兼容
+
+3.关于MySQL DBA
+运维DBA
+    日常管理,备份、恢复、故障处理、高可用保障等
+    整体优化,服务器、网络、MySQL、架构
+开发DBA
+    深入理解业务需求
+    SQL优化,编写存储过程、触发器等业务SQL代码
+DB架构师
+     整体架构设计、优化

@@ -1,0 +1,18 @@
+1三层体系结构：应用程序->连接层->SQL层->存储层
+   连接层:通信协议处理,线程处理,账号认证,安全检查等
+   SQL层:权限判断,查询解析,优化器&缓存,查询执行&返回等  
+   存储层:存储引擎(基于磁盘：InnoDB,MyISAM,TokuDB,存储引擎API接口)
+          存储引擎(基于内存：MEMORY,HEAP)
+          存储引擎(基于网络：NDB)
+          请求日志,错误日志,二进制日志,中继日志
+
+2连接层：
+  连接MySQL的方式：
+     最通用：TCP/IP
+     高效/安全：socket
+  建立连接过程：
+     等待建立新连接(判断Thread cache)
+     判断host权限,判断max_connections   连接数满了可以用gdb -p $(pidof mysqld) -ex "set max_connections=xxx" -batch,尽量不要使用
+     账号密码认证
+     判断user resource(max_user_connections等)
+  mysql -hlocalhost -uroot,mysql -h127.0.0.1 -uroot,mysql -h172.16.1.3 -uroot有什么区别？三者分别是socket,TCP/IP,TCP/IP的连接方式,可以通过登录进去\s查看
