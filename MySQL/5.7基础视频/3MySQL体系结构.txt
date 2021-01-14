@@ -16,3 +16,33 @@
      账号密码认证
      判断user resource(max_user_connections等)
   mysql -hlocalhost -uroot,mysql -h127.0.0.1 -uroot,mysql -h172.16.1.3 -uroot有什么区别？三者分别是socket,TCP/IP,TCP/IP的连接方式,可以通过登录进去\s查看
+
+mysqladmin var | grep -i xxx  查看参数(show global variables like 'xxx';)
+mysqladmin ext | grep -i xxx  查看状态(show global status like 'xxx';)
+
+3关于timeout
+    背景：
+    通过mysql cli客户端(命令行形式登录mysql)连接的是交互会话
+    通过jdbc等程序连接的是非交互会话
+    两个参数：
+    wait_timeout,关闭非交互连接之前等待的秒数
+    interactive_timeout,关闭交互式连接前等待的秒数
+
+4持久化参数(8.0)
+set persist 修改全局的参数并同步到mysqld_auto.cnf中,下次启动时会读这个文件中的配置
+
+5存储层,文件目录结构
+--log-error   
+--general_log    pt-query-digest
+--slow_query_log    mysqldumpslow/pt-query-digest
+--log-bin    mysqlbinlog/pt-query-digest
+--audit_log    审计
+
+5存储层,内存结构
+引擎层：innodb buffer,innodb log buffer;key buffer,myisam_sort_buffer_size
+mysql server层：query cache,table cache;thread cache,mdl cache
+连接/会话层：net/read/join,sort,bulk insert buffer;tmp/heap table,binlog cache
+mysqld进程消耗内存估算=global buffers + all thread buffers
+table cache不够用的情况：show global status like '%table%';的opend_tables远远大于open_tables
+innodb_buffer_pool不够用的情况：show engine innodb status\G的;show global status like 'innodb%buffer';的innodb_buffer_pool_pages_free为0,innodb_buffer_pool_wait_free不为0
+thread cache不够用的情况：show global status like '%thread%';的thread_created远远大于thread_connected

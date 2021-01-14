@@ -1,37 +1,37 @@
-1¡¢/usr/local/mysql/bin/mysqld --verbose --help²é¿´ÅäÖÃÎÄ¼şµÄ¶ÁÈ¡Ë³Ğò£¬ÈçÓĞÅäÖÃÎÄ¼şÓĞÏàÍ¬µÄ²ÎÊıºóÃæµÄ»á¸²¸ÇÇ°ÃæµÄ
-Èç¹ûÇ°Ò»¸öÅäÖÃÎÄ¼şÃ»ÓĞ£¬ºóÒ»¸öÅäÖÃÎÄ¼şÓĞÄ³Ò»ÉèÖÃ£¬Æô¶¯Ê±»áÌí¼ÓÕâÒ»ÉèÖÃ
+1ã€/usr/local/mysql/bin/mysqld --verbose --helpæŸ¥çœ‹é…ç½®æ–‡ä»¶çš„è¯»å–é¡ºåºï¼Œå¦‚æœ‰é…ç½®æ–‡ä»¶æœ‰ç›¸åŒçš„å‚æ•°åé¢çš„ä¼šè¦†ç›–å‰é¢çš„
+å¦‚æœå‰ä¸€ä¸ªé…ç½®æ–‡ä»¶æ²¡æœ‰ï¼Œåä¸€ä¸ªé…ç½®æ–‡ä»¶æœ‰æŸä¸€è®¾ç½®ï¼Œå¯åŠ¨æ—¶ä¼šæ·»åŠ è¿™ä¸€è®¾ç½®
 
-2¡¢mysqld &Æô¶¯·şÎñ
-mysqladmin -S /tmp/mysql.sock -p shutdown¹Ø±Õmysql·şÎñ
+2ã€mysqld &å¯åŠ¨æœåŠ¡
+mysqladmin -S /tmp/mysql.sock -p shutdownå…³é—­mysqlæœåŠ¡
 
-3¡¢µÇÂ¼mysqlÊ±£¬ÏÈ¼ì²é·şÎñÊÇ·ñÆô¶¯
+3ã€ç™»å½•mysqlæ—¶ï¼Œå…ˆæ£€æŸ¥æœåŠ¡æ˜¯å¦å¯åŠ¨
 
-4¡¢³£¼ûµÄ´íÎó
-soÒÀÀµÈ±Ê§ yum install xxx.so
-³õÊ¼»¯Ê±datadirÒª·Ç¿Õ
-Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)·şÎñÎ´Æô¶¯
-Can't connect to local MySQL server through socket '/tmp/mysql.sock' (111)¼ì²émy.cnfÀïÃæµÄÄ¿Â¼ºÍÎÄ¼şÊÇ·ñ´æÔÚ
-permission denied ²é¿´ÎÄ¼şºÍÎÄ¼şÈ¨ÏŞ   mysql:mysql
-selinuxÎÊÌâ      getenforce,setenforce 0,vim /etc/sysconfig/selinux ÉèÖÃ³Édisable
-²é¿´±¨´íÈÕÖ¾
-mysqld.pidÎÄ¼şÃ»ÓĞĞ´µÄÈ¨ÏŞ
-my.cnfÈ¨ÏŞÉèÎª755
+4ã€å¸¸è§çš„é”™è¯¯
+soä¾èµ–ç¼ºå¤± yum install xxx.so
+åˆå§‹åŒ–æ—¶datadirè¦éç©º
+Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)æœåŠ¡æœªå¯åŠ¨
+Can't connect to local MySQL server through socket '/tmp/mysql.sock' (111)æ£€æŸ¥my.cnfé‡Œé¢çš„ç›®å½•å’Œæ–‡ä»¶æ˜¯å¦å­˜åœ¨
+permission denied æŸ¥çœ‹æ–‡ä»¶å’Œæ–‡ä»¶æƒé™   mysql:mysql
+selinuxé—®é¢˜      getenforce,setenforce 0,vim /etc/sysconfig/selinux è®¾ç½®æˆdisable
+æŸ¥çœ‹æŠ¥é”™æ—¥å¿—
+mysqld.pidæ–‡ä»¶æ²¡æœ‰å†™çš„æƒé™
+my.cnfæƒé™è®¾ä¸º755
 
-5¡¢yum install strace -y
-strace -ttt /usr/local/mysql/bin/mysqld 2>&1 |tee s1.log   mysqldµÄÆô¶¯¹ı³Ì
-¿ÉÒÔ²é¿´ÅäÖÃÎÄ¼şµÄ¶ÁÈ¡Ë³Ğò£¨¼ÓÔØ£©
-strace¿ÉÒÔ¼ì²énginxµÈµÄÆô¶¯
+5ã€yum install strace -y
+strace -ttt /usr/local/mysql/bin/mysqld 2>&1 |tee s1.log   mysqldçš„å¯åŠ¨è¿‡ç¨‹
+å¯ä»¥æŸ¥çœ‹é…ç½®æ–‡ä»¶çš„è¯»å–é¡ºåºï¼ˆåŠ è½½ï¼‰
+straceå¯ä»¥æ£€æŸ¥nginxç­‰çš„å¯åŠ¨
 
-6¡¢²»Ğ¡ĞÄÆô¶¯Á½¸ömysql½ø³Ì£¬¿ÉÒÔÀûÓÃps -eo lstart,pid,cmd | grep mysqld½«Ê±¼äÍíµÄ½ø³ÌÉ±µô
-Ò²¿ÉÒÔcat /tmp/mysqld/mysqld.pid²é¿´£¬½«ÁíÒ»¸öÉ¾µô
+6ã€ä¸å°å¿ƒå¯åŠ¨ä¸¤ä¸ªmysqlè¿›ç¨‹ï¼Œå¯ä»¥åˆ©ç”¨ps -eo lstart,pid,cmd | grep mysqldå°†æ—¶é—´æ™šçš„è¿›ç¨‹æ€æ‰
+ä¹Ÿå¯ä»¥cat /tmp/mysqld/mysqld.pidæŸ¥çœ‹ï¼Œå°†å¦ä¸€ä¸ªåˆ æ‰
 
-7¡¢mysqlµÄÆô¶¯·½Ê½
-±ê×¼·½Ê½
+7ã€mysqlçš„å¯åŠ¨æ–¹å¼
+æ ‡å‡†æ–¹å¼
 systemctl start mysql
-cp /usr/local/mysql/support-file/mysql.server /etc/init.d/mysqlºó¿ÉÒÔ²ÉÓÃ/etc/init.d/mysql startÀ´Æô¶¯
+cp /usr/local/mysql/support-file/mysql.server /etc/init.d/mysqlåå¯ä»¥é‡‡ç”¨/etc/init.d/mysql startæ¥å¯åŠ¨
 service mysql start
-¶àÊµÀıÆô¶¯
-/usr/local/mysql/bin/mysqld_safe --default-file=/path/my.cnf &          5.7rpmÔ´Âë°²×°¸ÉµôÁËmysqld_safe
-Äã°Ñmysqld½ø³ÌkillÁË£¬mysqld_safe»áÖØĞÂÀ­È¡£¨Éú²ú»·¾³²»ÍÆ¼ö£¬²»ºÃ¼ì²é£©
+å¤šå®ä¾‹å¯åŠ¨
+/usr/local/mysql/bin/mysqld_safe --default-file=/path/my.cnf &          5.7rpmæºç å®‰è£…å¹²æ‰äº†mysqld_safe
+ä½ æŠŠmysqldè¿›ç¨‹killäº†ï¼Œmysqld_safeä¼šé‡æ–°æ‹‰å–ï¼ˆç”Ÿäº§ç¯å¢ƒä¸æ¨èï¼Œä¸å¥½æ£€æŸ¥ï¼‰
 /usr/local/mysql/bin/mysqld --default-file=/path/my.cnf &
-°Ñmysqld½ø³Ìkill¾ÍÕæµÄkillÁË
+æŠŠmysqldè¿›ç¨‹killå°±çœŸçš„killäº†
