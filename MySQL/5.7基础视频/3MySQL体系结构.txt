@@ -31,18 +31,46 @@ mysqladmin ext | grep -i xxx  查看状态(show global status like 'xxx';)
 4持久化参数(8.0)
 set persist 修改全局的参数并同步到mysqld_auto.cnf中,下次启动时会读这个文件中的配置
 
-5存储层,文件目录结构
---log-error   
---general_log    pt-query-digest
---slow_query_log    mysqldumpslow/pt-query-digest
---log-bin    mysqlbinlog/pt-query-digest
---audit_log    审计
+5.1存储层,文件目录结构
+  --log-error   
+  --general_log    pt-query-digest
+  --slow_query_log    mysqldumpslow/pt-query-digest
+  --log-bin    mysqlbinlog/pt-query-digest
+  --audit_log    审计
 
-5存储层,内存结构
-引擎层：innodb buffer,innodb log buffer;key buffer,myisam_sort_buffer_size
-mysql server层：query cache,table cache;thread cache,mdl cache
-连接/会话层：net/read/join,sort,bulk insert buffer;tmp/heap table,binlog cache
-mysqld进程消耗内存估算=global buffers + all thread buffers
-table cache不够用的情况：show global status like '%table%';的opend_tables远远大于open_tables
-innodb_buffer_pool不够用的情况：show engine innodb status\G的;show global status like 'innodb%buffer';的innodb_buffer_pool_pages_free为0,innodb_buffer_pool_wait_free不为0
-thread cache不够用的情况：show global status like '%thread%';的thread_created远远大于thread_connected
+5.2存储层,内存结构
+  引擎层：innodb buffer,innodb log buffer;key buffer,myisam_sort_buffer_size
+  mysql server层：query cache,table cache;thread cache,mdl cache
+  连接/会话层：net/read/join,sort,bulk insert buffer;tmp/heap table,binlog cache
+  mysqld进程消耗内存估算=global buffers + all thread buffers
+  table cache不够用的情况：show global status like '%table%';的opend_tables远远大于open_tables
+  innodb_buffer_pool不够用的情况：show engine innodb status\G的;show global status like 'innodb%buffer';的innodb_buffer_pool_pages_free为0,innodb_buffer_pool_wait_free不为0
+  thread cache不够用的情况：show global status like '%thread%';的thread_created远远大于thread_connected
+  
+  两个容易设置很大的内存选项
+  都是session级
+  max_heap_table_size限制memory表最大容量,不管其他执行SQL产生的临时表,若内存不够用,则不允许写入新的数据,memory表也不会转换成磁盘表,只会告警超限后拒绝写入
+  tmp_table_size不限制memory表最大容量,如果执行SQL产生临时表超过tmp_table_size或max_heap_table_size,则会产生基于磁盘的临时表
+  这两个选项特别容易分配较大,两个参数设置成一样,若有需要,可临时调大,不要修改全局值
+
+5.3存储层,innodb内存结构
+5.4关于huge page 
+  linux默认启用大页,可能会导致MySQL(TokuDB)更容易发生内存泄漏、OOM(内存溢出)等问题
+  查看是否关闭
+  cat /sys/kernel/mm/transparent_hugepage/enabled
+  cat /sys/kernel/mm/transparent_hugepage/defrag
+  关闭：echo never > /sys/kernel/mm/transparent_hugepage/defrag,echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+6不同引擎的对比
+
+7ToKuDB
+  一个MySQL的大数据存储引擎,开源GPL协议,现在被Percona公司收购
+  基于Fractal Tree Index设计
+  高速数据写入/追加的业务场景
+  大数据场景,高效压缩节省空间
+  是一个可以让你成本节约一倍以上的备选方案
+  支持MVCC、OnlineDDL
+  适用场景：大规模数据,1TB+;需要归档数据;频繁增减字段;
+  不适用场景：数据量小,单表1千万一下;存储图片等大对象;有大量的update & 长事务
+
+8json+虚拟列可以适用索引
