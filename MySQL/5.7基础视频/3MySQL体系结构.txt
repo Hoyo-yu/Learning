@@ -73,4 +73,34 @@ set persist 修改全局的参数并同步到mysqld_auto.cnf中,下次启动时�
   适用场景：大规模数据,1TB+;需要归档数据;频繁增减字段;
   不适用场景：数据量小,单表1千万一下;存储图片等大对象;有大量的update & 长事务
 
-8json+虚拟列可以适用索引
+8统计表DML(sys库)
+  show tables like 'schema%';
+  eg1:select table_name,rows_fetched,rows_inserted,rows_updated,rows_deleted,io_read_requests,io_read,io_write_requests,io_write from schema_table_statistics where table_schema='test1' and table_name='tb1';
+  eg2:select index_name,rows_selected,rows_inserted,rows_updated,rows_deleted from schema_index_statistics where table_schema='xxx' and table_name='xxx' and index_name='xxx';
+  eg3:统计冗余索引(索引x1(a)是索引x2(a,b)的冗余索引)
+      select * from schema_redundant_indexes\G;
+  eg4:统计无用索引(根据判断可以删除)
+      select * from schema_unused_indexes; 
+  eg5:统计全表扫描
+      select * from schema_tables_with_full_table_scans limit 4;
+  eg6:统计指定表的buffer pool消耗
+      select * from schema_table_statistics_with_buffer where table_schema='xxx' and table_name='xxx'\G;
+  eg7:统计MDL锁(metadata schema_table_lock_waits)
+      select * from schema_table_lock_waits limit 4\G;       Waiting for table metadata lock----产生了锁等待
+
+9percona toolkit
+  pt-summary、pt-mysql-summary   ****
+  pt-mext(show global status结果输出对比,发现差异)
+  pt-variable-advisor(配置参数建议)
+  pt-inprofile(类似ioprofile工具,检查MySQL中哪些文件的I/O压力大)
+  pt-kill(杀掉符合某些特称的查询,例如慢查询、SQL注入等)
+  pt-online-schema-change(online DDL 不足的替代\补充工具) ****
+  pt-table-checksum、pt-table-sync(主从数据一致性校验并修复数据(依据主键或唯一索引进行修复))
+  pt-pmp(配合pstack使用,获取进程的堆栈信息,用于分析进程卡住原因)
+
+10SELECT SQL执行过程
+  建立连接-->账户验证-->SQL解析--(query_cache命中)-->返回结果(8.0没了QC)
+                         |
+                       SQL改写优化-->执行SQL--(innodb_buffer_pool命中)-->返回结果
+                                       |
+                                    (更新IBP)-->返回结果
