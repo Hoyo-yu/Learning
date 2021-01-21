@@ -1,3 +1,18 @@
+Percona XtraDB Cluster是MySQL的数据库集群解决方案。它确保高可用性，防止停机和数据丢失，并为不断增长的环境提供线性可伸缩性。
+Percona XtraDB群集的功能包括：
+同步复制
+  数据同时写入所有节点，或者即使在单个节点上失败也不会写入。
+多源复制
+  任何节点都可以触发数据更新。
+真正的并行复制
+  从属服务器上的多个线程在行级别执行复制。
+自动节点配置**
+  您只需添加一个节点，它就会自动同步。
+资料一致性
+  Percona XtraDB群集可确保在群集中的所有节点上自动同步数据 。
+PXC严格模式
+  避免使用实验性和不受支持的功能。
+
 yum install –y perl­‐DBD­‐MySQL.x86_64 perl­‐IO­‐Socket-­‐SSL.noarch socat.x86_64 nc
 yum install –y openssl openssl‐devel
 yum install -y git scons gcc* gcc-c++ openssl* check cmake bison boost-devel asio-devel libaio-devel ncurses-devel readline-devel pam-devel socat perl-time-hires perl-io-socket-ssl.noarch perl-dbd-mysql.x86_64
