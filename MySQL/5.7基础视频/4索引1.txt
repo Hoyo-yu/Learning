@@ -137,4 +137,18 @@
       无法使用前缀索引完成排序
 
 14不建议使用外键
-  mysql DBA开发规范
+  mysql DBA开发规范https://github.com/zhishutech/mysql-sql-standard
+
+15全文索引(FULLTEXT)
+  5.6以前,FULLTEXT只支持MyISAM引擎
+  5.6以后,也开始支持InnoDB引擎
+  5.7以前,中文支持很差
+  优先使用Shpinx\Lucene\Solr等实现中文检索
+
+16索引管理
+  创建\删除索引
+    alter table table_name add index index_name(c1) using btree;默认走的是btree树结构,即使这里是using hash,InnoDB不认(可以通过show index from table_name;其中show create table table_name只是显示和定义的一样而已,实际上走的是btree)
+    create index index_name on table_name(c1) using btree;
+    create table时也可以顺便创建索引
+    alter table table_name drop index index_name;
+    drop index index_name on table_name;
