@@ -147,8 +147,64 @@
 
 16索引管理
   创建\删除索引
-    alter table table_name add index index_name(c1) using btree;默认走的是btree树结构,即使这里是using hash,InnoDB不认(可以通过show index from table_name;其中show create table table_name只是显示和定义的一样而已,实际上走的是btree)
+    alter table table_name add index index_name(c1) using btree;默认走的是btree树结构,即使这里是using hash(跟引擎有关),InnoDB不认(可以通过show index from table_name;其中show create table table_name只是显示和定义的一样而已,实际上走的是btree)
     create index index_name on table_name(c1) using btree;
     create table时也可以顺便创建索引
     alter table table_name drop index index_name;
     drop index index_name on table_name;
+    
+    alter table tb1 engine=heap;
+    show index  from tb1;以前的索引都变成了hash索引,只有新创建的索引alter table tb1 add index x1(c1) using btree,才会走btree索引
+    alter table tb1 engine=innodb;以前的索引都变成了btree索引
+
+17冗余索引
+  根据最左匹配规则,一个索引是另一个索引的子集
+  可使用工具pt-duplicate-key-checker\表schema_redundant_indexes两种方式查看
+
+18无用索引
+  几乎从未被使用过的索引
+  pt-index-usage检查低利用率索引,提供删除建议
+  也可以通过表schema_unused_indexes查看
+
+19使用索引
+  1让MySQL自动选择
+  select ... from ... where
+  2自主建议索引
+  select ... from ... use index(IDX) where 
+  3强制索引
+  select ... from ... force index(IDX) where
+  select * from innodb_index_stats where database_name='xxx' and table_name='xxx';
+  
+  走的索引不准确,执行计划不准确,需要更新统计信息
+  alter table xxx stats_persistent=1 stats_auto_recalc=1 stats_sample_page=50(默认20);
+  要考虑索引统计代价
+
+20MySQL索引类型
+  按数据结构分类
+  btree索引、hash索引,只用于heap表、空间索引(很少使用)、Fractal Tree索引,用于ToKuDB表
+
+21InnoDB索引长度
+  索引最大长度767bytes
+  启用innodb_large_prefix,增加到3072bytes,只针对Dynamic、compressed行格式(show variables like 'innodb_file_format'(引擎的行格式);show table status like '%xxx%'\G;(表的行格式))管用
+  对于redundant、compact格式,最大索引的长度还是767bytes
+  MyISAM表索引的最大长度是1000bytes 
+  最大排序长度默认是1024(max_sort_length)
+
+22索引统计https://imysql.com/2020/07/14/all-about-analyze-table.shtml
+  表统计信息
+    show table status like 'table_name';
+    select * from information_schema.tables where table_schema='xxx' and table_name='xxx';
+    select * from mysql.innodb_table_stats;
+  索引统计信息
+    show index from table_name;
+    select * from information_schema.statistics where table_schema='xxx' and table_name='xxx';
+    select * from mysql.innodb_index_stats;
+
+  innodb_stats_auto_recalc:默认启用,当修改数据量大于10%,自动更新统计信息
+  innodb_stats_persistent:统计信息持久化存储,默认启用
+  innodb_stats_persistent_sample_pages:统计信息持久化存储时,每次采集20个page
+  innodb_stats_on_metadata:默认禁用,访问meta data时更新统计信息
+  innodb_stats_method:控制统计信息针对索引中NULL值得算法
+  其中：执行show table status,show index,访问I_S.tables/statistics视图时更新统计信息
+  
+  在登陆mysql客户端得时候,会更新统计信息(最好登录得时候带个参数 -A(-auto-rehash))
