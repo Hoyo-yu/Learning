@@ -41,7 +41,7 @@ UserID%10->m
    日志类型数据处理
 
 基于多种认证系统怎么分？                    GlobalDB
-手机号登录,qq号登录,微信登录...---(中间是认证系统和UserID的对应关系)---->UserID---(逻辑DB)-->物理DB
+手机号登录,qq号登录,微信登录等---(中间是认证系统和UserID的对应关系)---->UserID---(逻辑DB)-->物理DB
 
 3优秀开源中间件推荐
 基于Client的：Sharding-Sphere(Sharding-jdbc)

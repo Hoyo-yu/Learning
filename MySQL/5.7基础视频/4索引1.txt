@@ -68,7 +68,7 @@
     desc select * from table_name;中的type是index指走的是全索引扫描,type是all指走的是全表扫描
     explain/desc select 查询;可以看到它走的索引类型
     
-8聚集索引(clusterd index)
+8聚集索引(clusterd index)相反就是辅助索引
   聚集索引是一种索引,该索引中的键值的逻辑顺序决定了表数据行的物理顺序
   每张表只能建一个聚集索引,除了ToKuDB引擎
   InnoDB中,聚集索引即表,表即聚集索引(主键索引一定是聚集索引,但聚集索引不一定是主键索引;没有主键的情况下,innodb会用隐藏的列来做索引)
@@ -186,6 +186,12 @@
 21InnoDB索引长度
   索引最大长度767bytes
   启用innodb_large_prefix,增加到3072bytes,只针对Dynamic、compressed行格式(show variables like 'innodb_file_format'(引擎的行格式);show table status like '%xxx%'\G;(表的行格式))管用
+
+  show variables like 'innodb_file_format';
+  有两种输出结果：Antelope(MySQL内置的InnoDB支持文件格式的代号)、Barracuda(InnoDB Plugin支持的文件格式)
+  Antelope支持的数据表的行格式：Redundant、Compact
+  Barracuda支持的数据表的行格式：Dynamic、Compressed、Redundant、Compact
+
   对于redundant、compact格式,最大索引的长度还是767bytes
   MyISAM表索引的最大长度是1000bytes 
   最大排序长度默认是1024(max_sort_length)
