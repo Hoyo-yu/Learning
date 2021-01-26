@@ -1,0 +1,66 @@
+1你觉得一般索引采用B+树结构,会有什么问题？
+  索引热块(争用)
+
+2索引如何提高SQL效率的：
+  提高数据检索效率
+  提高聚合函数效率sum(),avg(),count()
+  提高排序效率order by asc/desc
+  有时可以避免回表
+  减少多表关联时扫描行数
+  唯一、外键约束还可以作为辅助约束
+  列定义为default null时,null值也会有索引,存放在索引树的最前端部分,尽量不要定义允许null
+
+3索引不可用的场景：
+  通过索引扫描的记录数超过20%-30%,可能会变成全表扫描(5.7起完善CBO规则,这个比例会有更大变化)
+  联合索引中,第一个索引列使用范围查询(这时用到部分索引)
+  联合索引,第一个查询条件不是最左索引列
+  模糊查询条件列最左以通配符%开始
+  heap表使用hash索引时,使用范围检索或者order by
+  多表关联时,排序字段不属于驱动表,无法利用索引完成排序
+  ##驱动表的判断：a left join b(a是驱动表,a驱动b)、a inner join b(自动选择   a,b)、a right join b(b驱动a)、a straight_join b(a强制驱动b)
+  ##建议：小结果集驱动大结果集
+  两个独立索引,其中一个用于检索,一个用于排序(只能用到一个索引)
+  join查询时,关联列数据类型(以及字符集)不一致也会导致索引不可用
+  ##t1(utf8).char_col=t2.char_col(utf8mb4)不走索引,反过来的字符集可以
+  **注意：隐式转换
+
+  索引的最左匹配：
+  #假设有联合索引idx(a,b,c)
+  #下面的SQL可以用到完整的索引b=? and c=? and a=?;(都是等值查询不管顺序)a=? and b in(?,?) and c=?;a=? order by b,c;(按照顺序的都可以)
+  #下面的SQL只能用到部分索引,或者可以用到ICP(5.6起)
+  b=? and a=?;----只用到(a,b)部分索引
+  a in (?,?) and b=?;----只用到(a,b)部分索引,同时有ICP
+  (a between ? and ?) and b=?;----只用到(a,b)部分索引,同时有ICP
+  a=? and (b between ? and ?) and c=?;----可用到(a,b,c)整个索引,同时有ICP
+  a=? and c=?;----只用到(a)部分索引,同时有ICP
+  a=? and c>=?;----只用到(a)部分索引,同时有ICP
+  a in (?,?,?) order by b,c;----只能用到(a)部分索引,且会有ICP和filesort
+  a>? order by b;----只用到(a)部分索引,且会有ICP和filesort
+  a>? order by a;----只能用到(a)部分索引
+  ICP(index condition pushdown)是MySQL5.6的新特性,其机制会让索引的其他部分也参与过滤,减少引擎层和server层之间的数据传输和回表请求,通常情况下可大幅提升查询效率
+  ##下列几个SQL完全用不到索引
+  b=?;
+  b=? and c=?;
+  b=? and c>?;
+  order by b;
+  order by b,a;
+
+  覆盖索引：(没有必要count指定的列)
+  ##假设有这样的索引：idx1(id,user,passwd)
+  #下面几种情况都可以用到完整的覆盖索引
+  select id,user,passwd from t1 where id=?;
+  select id,user,passwd from t1 where id=? and user=?
+  select id,user,passwd from t1 where id=? and user=? and passwd=?;
+  select id,user,passwd from t1 where passwd=? and id=?;
+  #只用到部分覆盖索引
+  select id,user from t1 where id=? order by passwd;
+  select id,user from t1 where id=? order by user;
+
+  select count(*) from t1;默认走的是辅助索引(非聚集索引),读索引树就能得到结果
+  ##全索引扫描(type=index)比全表扫描(type=all)成本低,eg:desc select count(*) from t1 where id=?;(Extra:using where,using index;type:index)
+
+4字段nullable：
+  索引查找、统计、值比较,会更加复杂
+  在B+树里,所有null值放到最左边,增加搜索代价
+  如果nullable列要建索引的话,索引的每一行要增加一个字节存储,并且如果是MyISAM可能会更糟糕,会把固定长度转化为变长字段
+

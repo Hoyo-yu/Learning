@@ -56,6 +56,7 @@ show 还支持where和like使用
           float   4个字节
 日期型：datetime
              timestamp  1970-2038     
+             日期时间的类型建议(int,datetime)
 字符型：varchar
              enum枚举    
                 char(4)和varchar(4)
