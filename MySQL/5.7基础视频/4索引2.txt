@@ -64,3 +64,38 @@
   在B+树里,所有null值放到最左边,增加搜索代价
   如果nullable列要建索引的话,索引的每一行要增加一个字节存储,并且如果是MyISAM可能会更糟糕,会把固定长度转化为变长字段
 
+5EXPLAIN之key_len(desc\explain select)
+  正常的,等于索引列字节长度
+  字符串类型需要同时考虑字符集因素
+  若允许NULL,再加1
+  变长类型(VARCHAR),再加2
+  案例：utf8
+      varchar(10)允许NULL：10*3+2+1
+      varchar(10)不允许NULL：10*3+2
+      char(10)允许NULL：10*3+1
+      cahr(10)不允许NULL：10*3
+      int not null:4
+      int :4+1
+      bigint:8+1
+  key_len只计算利用索引完成数据过滤时的索引长度
+  不包括group by\order by的索引长度,即：如果order by 也使用了索引,不会计算再key_Len之内
+  例如：联合索引(c1,c2,c3)
+       where c1=? and c2=? order by c3;这时候,key_len知会计算c1+c2的长度
+       desc select的结果extr中没有filesort：表明可以用索引消除排序
+
+6小表可以不建索引(SQL在本地测试不要再生产环境直接做操作)
+  看情况,通常最好建索引(考虑锁表的情况,高并发的读和写)
+
+7using filesort/temporary
+  filesort:(需要order by排序的时候,没有合适的索引消除排序(比如联合索引是会进行排序的),就会用到filesort排序)
+           方式1：sort的item仅包括排序列,待排序完成后,根据rowid查询所需要的列,<4.1采用的方式
+           方式2：sort的item包括全部列,排序完成后,无需再回表,4.1-5.6,可以明显减少额外IO,但需要更多内存
+           方式3：打包数据排序模式,5.7.3后新增的优化模式,char和varchar字段存到sort_buffer中,更加紧缩
+           filesort仅用于单表排序,若多表join时有排序,则走temporary,再基于temp table进行filesort
+  sort-buffer按需分配 mysqladmin ext | grep -i sort_merge_pass
+  ##适当加大read_rnd_buffer_size 和sort buffer size
+  temporary:
+            外部临时表,create temporary table,只对当前session可见,关闭连接后删除
+            内部临时表,SQL运行时using temporary
+            先创建heap表(基于内存的临时表),当数据超过max_heap_table_size(16M)时,自动转换成disk temp table(5.7前是myisam引擎,5.7可通过修改参数internal_disk_storage_engine成innodb)
+            8.0的临时表引擎：internal_tmp_mem_storage_engine为TempTable,temptable_max_ram默认的大小是1G(临时数据)
