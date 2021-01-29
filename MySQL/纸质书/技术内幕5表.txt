@@ -154,3 +154,74 @@
                日期类型,如DATE和DATETIME
                字符串类型,如CHAR、VARCHAR、BINARY和VARBINARY
              **对多个列进行分区：partition by range columns(a,b,c)(less than)
+
+15子分区
+  子分区(subpartitioning)是在分区的基础上再进行分区,有时也称这种分区为复合分区(composite partitioning)
+  MySQL数据库允许在RANGE和LIST的分区上再进行HASH或KEY的子分区
+  eg:create table ts(a int,b date) 
+     partition by range(year(b))
+     subpartition by hash(to_day(b))
+     subpartitions 2(partition p0 values less than(1990),partition p1 values less than(2000),partition p2 values less than maxvalue);
+    表ts先根据b列进行了range分区,然后又进行了一次HASH分区,所以分区的数量为3*2=6个
+    我们也可以通过使用subpartition语法来对各个子分区命名,见eg1
+  eg1:create table ts(a int,b date)
+      partition by range(year(b))
+      subpartition by hash(to_day(b))(
+          partition p0 values less than(1990)(subpartition s0,subpartition s1),
+          partition p1 values less than(2000)(subpartition s2,subpartition s3),
+          partition p2 values less than(2001)(subpartition s4,subpartition s5)
+      );
+    子分区可以用于特别大的表,在多个磁盘间分别分配数据和索引
+    假设有6个磁盘,分别为/disk0、/disk1、/disk2等
+    eg2:create table ts(a int,b date) engine=myisam
+        partition by range(year(b))
+        subpartition by hash(to_day(b))(
+          partition p0 values less than(1990)
+          (subpartition s0 data directory='/disk0/data' index directory='/disk0/idx',subpartition s1 data directory='/disk0/data' index directory='/disk0/idx'),
+          partition p1 values less than(2000)
+          (subpartition s2 data directory='/disk0/data' index directory='/disk0/idx',subpartition s3 data directory='/disk0/data' index directory='/disk0/idx'),
+          partition p2 values less than(2001)
+          (subpartition s4 data directory='/disk0/data' index directory='/disk0/idx',subpartition s5 data directory='/disk0/data' index directory='/disk0/idx')
+      );
+    由于InnoDB存储引擎使用表空间自动的进行数据和索引的管理,因此会忽略data directory和index directory语法,因此上述的分区表的数据和索引文件分开设置对其是无效的
+    eg3:create table ts(a int,b date) engine=innodb
+        partition by range(year(b))
+        subpartition by hash(to_day(b))(
+          partition p0 values less than(1990)
+          (subpartition s0 data directory='/disk0/data' index directory='/disk0/idx',subpartition s1 data directory='/disk0/data' index directory='/disk0/idx'),
+          partition p1 values less than(2000)
+          (subpartition s2 data directory='/disk0/data' index directory='/disk0/idx',subpartition s3 data directory='/disk0/data' index directory='/disk0/idx'),
+          partition p2 values less than(2001)
+          (subpartition s4 data directory='/disk0/data' index directory='/disk0/idx',subpartition s5 data directory='/disk0/data' index directory='/disk0/idx')
+      );
+
+16分区中的NULL值
+  MySQL数据库允许对NULL值做分区,但是处理的方法与其他数据库可能完全不同,MySQL数据库的分区总是视NULL值小于任何的一个非NULL值,这和MySQL数据库中处理NULL值的order by操作是一样的
+  对于不同的分区类型,MySQL数据库对于NULL值的处理也是各不相同
+  RANGE分区：如果向分区列插入了NULL值,则MySQL数据库会将该值放入最左边的分区(第一个分区)即p0分区,值得注意的是,如果删除p0这个分区,这个含NULL值的记录还会存在
+  LIST分区：需要将NULL值指定放入哪个分区,否则插入含有NULL的记录会报错
+  HASH和KEY分区：任何分区函数都会将含有NULL值的记录返回为0
+
+17分区和性能
+  分区可能根本感觉不到速度的提升,甚至会发现查询速度急剧下降,因此在合理使用分区之前,必须了解分区的使用环境
+  数据库的应用分为两类：OLTP(在线事务处理),如Blog、电子商务、网络游戏等;OLAP(在线分析处理),如数据仓库、数据集市等
+  eg:
+    在一个实际的应用环境,可能既有OLTP的应用,也有OLAP的应用,如网络游戏中,玩家操作的游戏数据库应用就是OLTP的,但是游戏厂商可能需要对游戏产生的日志进行分析,通过分析得到的结果来更好的服务于游戏,预测玩家的行为等,而这却是OLAP的应用
+  
+  对于OLAP应用：分区的确是可以很好的提高查询的性能,因为OLAP应用大多数查询需要频繁的扫描一张很大的表(比如：一亿行)
+  对于OLTP应用：在这种应用下,通常不可能会获取一张大表的10%的数据,大部分都是通过索引返回几条记录即可,根据B+索引数索引的原理可知,对于一张大表,一般的B+树需要2-3次的磁盘IO,因此B+树可以很好的完成操作,不需要分区的帮助,并且设计不好的分区会带来严重的性能问题
+
+  注意：即使是根据自增长主键进行的HASH分区也不能保证分区数据的均匀,因为插入的自增长ID并非总是连续的,如果该主键因为某种原因被回滚了,则该值将不会再次被自动使用,查看执行计划看到需要搜索所有分区,查询速度上会慢很多
+
+18在表和分区间交换数据(move)https://dev.mysql.com/doc/refman/5.7/en/partitioning-management-exchange.html
+  MySQL5.6开始支持alter table xxx exchange partition语法,该语句允许分区或子分区中的数据与另一个非分区的表中的数据进行交换,如果非分区表中的数据为空,那么相当于将分区中的数据移动到非分区表中;
+  若分区表中的数据为空,则相当于将外部表中的数据导入到分区中
+
+  要使用alter table xxx exchange partition xxx with table xxx;必须满足下面的条件：
+    要交换的表需要和分区表有着相同的表结构,但是表不能含有分区
+    在非分区表中的数据必须在交换的分区定义内
+    被交换的表中,不能含有外键,或者其他的表含有对该表的外键引用
+    用户除了需要alter、insert和create权限外,还需要drop的权限
+  此外,有两个小的细节需要注意：
+    使用该语句时,不会触发交换表和被交换表上的触发器
+    auto_increment列将会被重置
