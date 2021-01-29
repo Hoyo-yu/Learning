@@ -99,8 +99,58 @@
   分区的过程是将一个表或索引分解为多个更小、更可管理的部分
   MySQL数据库支持的分区类型为水平分区,并不支持垂直分区？
 
+  水平分区：指将同一表中不同行的记录分配到不同的物理文件中
+  垂直分区：指将同一表中不同行的记录分配到不同的物理文件中
+
   当前MySQL数据库支持以下几种类型的分区：
   RANGE分区(5.5)：行数据基于一个给定连续区间的列值被放入分区
   LIST分区(5.5)：和RANGE分区类型相似,只是LIST分区面向的是离散的值
   HASH分区：根据用户自定义的表达式的返回值来进行分区,返回值不能为负数
   KEY分区：根据MySQL数据库提供的哈希函数来进行分区
+
+  RANGE分区:(values less than)
+           创建表的时候同时创建分区： create table t(id int) partition by range(id)(partition p0 values less than(10),partition p1 values less than(20));
+           ##定义好的分区,插入的值应该严格遵守分区的定义,当插入一个不在分区中定义的值时,MySQL数据库会抛出一个异常
+           对于这个问题,我们可以对分区添加一个maxvalue值的分区,maxvalue可以理解为正无穷,因此所有大于等于20且小于maxvalue的值别放入p2分区
+           ##alter table t add partition(partition p2 values less than maxvalue);
+           可以通过information_schema中的partitions表来查看每个分区的具体信息
+           select * from information_schema.partitions where table_schema='test' and table_name='t';
+           eg:partition by range(year(date)*100+month(date))();按照月份来进行分区
+           优化器只能对year(),to_day(),to_seconds(),unix_timestamp()这类函数进行优化选择,所以上面的在查询的时候会读所有的分区,需要对分区进行优化
+           优化：partition by range(TO_DAY(date))(partition p201001 values less than(TO_DAY('2010-02-01'))...);
+  
+  LIST分区:(values in)
+          注：在使用分区时,也需要对不同存储引擎支持的事务特性进行考虑
+          LIST分区和RANGE分区非常相似,只是分区列的值是离散的,而非连续的
+          eg:partition by list(b)(partiton p0 values in(1,3,5,7,9),partition p1 values in(2,4,6,8,10));
+          ##如果插入的值不在分区的定义中,MySQL数据库同样会抛出异常Table has no partition for value xxx;
+          #另外,在用insert插入多个行数据的过程中遇到分区未定义的值时,MyISAM和InnoDB存储引擎的处理完全不同
+          MyISAM:在遇到分区未定义的值之前的数据都会被插入到表中
+          InnoDB:视其为一个事务,只要存在分区未定义的值,整个插入都不会进行
+
+  HASH分区：(mod)
+          在RANGE和LIST分区中,必须明确指定一个给定的列值或列值集合应该保存在哪个分区中
+          其目的是：将数据均匀的分布到预先定义的各个分区中,保证个分区的数据数量大致都是一样的
+          实现：在HASH分区中,MySQL自动完成这些工作,用户所要做的只是基于将要进行哈希分区的列值指定一个列值或表达式,以及指定被分区的表将要被分割成的分区数量
+          partition by hash(表达式expr) partition nums(非负整数);
+          eg:create table t_hash(a int, b datetime) partition by hash(year(b)) partitions 4;
+             insert into t_hash values(1,2010-04-01);
+             mod(2010,4)=2----->p2
+          LINEAR HASH的分区,它使用一个更加复杂的算法来确定新行插入到已经分区的表中的位置
+              优点：增加、删除、合并和拆分分区将变得更加便捷,这有利于处理函数大量数据的表
+              缺点：与使用HASH分区得到的数据分布相比,各个分区间数据的分布可能不大均衡
+  KEY分区：
+         KEY分区和HASH分区相似,不同之处在于HASH分区使用用户定义的函数进行分区,KEY分区使用MySQL数据提供的函数进行分区
+         对于NDB Cluster引擎,MySQL数据库使用MD5函数来分区
+         其他引擎,MySQL数据库使用其内部的哈希函数
+  COLUMNS分区：(5.5)
+             在前面介绍的RANGE、LIST、HASH和KEY这四种分区中,分区的条件是：数据必须是整型,如果不是整型,那应该需要通过函数将其转化为整型如year()、to_day()、month()等函数
+             其中to_days()是从0000-00-00计算起到设定时间的天数
+             COLUMNS分区可视为RANGE分区和LIST分区的一种进化
+             COLUMNS分区可以直接使用非整型的数据进行分区,分区根据类型直接比较而得,不需要转化整型
+             COLUMNS分区可以对多个列的值进行分区
+             COLUMNS分区支持以下的数据类型：
+               所有的整型类型,如INT、SMALLINT、TINYINT、BIGINT
+               日期类型,如DATE和DATETIME
+               字符串类型,如CHAR、VARCHAR、BINARY和VARBINARY
+             **对多个列进行分区：partition by range columns(a,b,c)(less than)
