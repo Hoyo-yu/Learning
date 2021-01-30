@@ -1,0 +1,45 @@
+1Flush tables简介
+
+官方手册中关于Flush tables的介绍， Closes all open tables, forces all tables in use to be closed, and flushes the query cache. FLUSH TABLES also removes all query results from the query cache, like the RESET QUERY CACHE statement.其解析就是关闭所有已打开的表对象，同时将查询缓存中的结果清空。就是说Flush tables的一个效果就是会等待所有正在运行的SQL请求结束。
+
+因为，SQL语句在执行前，都会打开相应的表对象，如select * from t1语句，会找到t1表的frm文件，并打开表内存对象。为了控制表对象使用的内存空间和其他资源，MySQL会隐式（后台表对象管理线程）或显式（flush tables等）来关闭已打开但并没有使用的表对象。
+然而，正在使用的表对象是不能关闭的（如SQL请求仍在运行），因此，Flush Tables操作会被正在运行的SQL请求阻塞。
+
+2Flush tables影响
+
+1）flush tables会等待正在运行的所有语句执行结束，即使运行的是查询请求；
+2）如果flush tables等待SQL请求操作的表集合为{tables}，这里的tables组合应该是当前正在有sql在运行的，已经打开的表，同一个库中，没有sql运行的表是不计算在内，因此 若 库star中有3张表，tx1和tx2被打开了，，的若有新请求操作{tables}中的任意一表，这些请求都会阻塞（即使是普通查询），如会话3；
+3）如果其他会话新请求操作{tables}外的其他表，不会被阻塞，如会话4。
+
+从此可知，flush tables操作可认为是{tables}所有表的表级排他锁，会阻塞其他会话关于{tables}表上的所有操作。假设一个大查询或长事务过程中（如会话1）执行flush tables操作，那么flush tables会等待长事务的结束（如会话1），同时阻塞关于{tables}的新请求。
+
+3Flush tables with read lock
+
+Flush tables with read lock是另一个常见的操作，与Flush tables的作用是一样的，同样会等待所有正在运行的SQL请求结束，只是增加了一个全局读锁，即阻塞所有库所有表的写操作，直到unlock tables操作完成。
+
+1）与flush tables一样，flush tables with read lock会等待正在运行的所有语句执行结束。
+2）如果flush tables with read lock等待SQL请求操作的表集合为{tables}，若有新请求操作{tables}中的任意一表，这些请求都会阻塞。
+a)    如果是查询请求，在flush tables with read lock结束后就可执行。
+b)    如果是插入、更新等写请求，必须等待unlock tables释放读锁。
+3) 如果其他会话新请求操作{tables}外的其他表，则
+a)    如果是查询请求，不会被阻塞。
+b)    如果是写请求，必须等待unlock tables释放读锁
+
+因此，flush tables with read lock操作是{tables}所有表的表级排他锁，同时是库级读锁，会阻塞库上所有写操作，直到执行unlock tables。其影响面比flush tables更大。也就是比flush tables多一点影响，阻塞了｛tables}之外的表的写操作，不影响其读操作，只有unlock tables之后，释放了这个对库的全局读锁之后，才可以写。
+
+ 
+
+4一致性备份的问题
+
+一般情况下，很少会主动使用flush tables和flush tables with read lock操作。更多使用这两个命令是mysqldump进行数据备份的时候。如果使用mysqldump进行一致性备份时，一般指定了--master-data和--single-transaction这两个参数，那么在备份操作执行前，先执行flush tables和flush tables with read lock这两个命令，以获得此一致性读的binlog位置。
+
+获得binlog位置的过程为：
+
+1)    flush tables操作是等待正在运行的所有操作结束;
+2)    flush tables with read locks是为了加 库级全局读锁，禁止写操作;
+3)    通过show master status获得此时binlog位置;
+4)    unlock tables释放全局读锁，允许写请求。
+
+先执行flush tables而不是直接执行flush tables with read locks的原因是，flush tables阻塞其他请求的可能性更少。假设flush tables的过程中出现大查询，从前面的分析知道，仅影响其他会话关于{tables}表的请求，而不像flush tables with read locks会阻塞所有写操作。
+然而，以上操作只是大大减少了全局读锁的影响范围，如果在flush tables和flush tables with read locks之间出现大事务，还是有可能会出现所有写操作hang住的情况。因此，必须谨慎使用一致性备份的功能。
+另外，经测试，如果出现flush tables阻塞其他会话的情况，如会话3、会话5的操作，是不会记录慢查询日志的，但事实上，应用程序可能是得不到迅速的响应了。

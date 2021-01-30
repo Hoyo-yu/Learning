@@ -1,16 +1,103 @@
-1事务(Transaction)：
+1事务(Transaction)：select * from information_schema.innodb_trx\G;
   是一组SQL组成的执行单元(unit),是数据库并发控制和恢复回滚的基本单位
   一个事务可能包含多个SQL,要么都失败,要么都成功
   事务具备4个基本属性：
         原子性(Atomicity)：同一个事务里,要么都提交,要么都回滚
         一致性(Consistency):即在事务开始之前和事务结束之后,数据库的完整性约束没有被破坏
         隔离性(Isolation):并发事务间的数据是彼此隔离的
-        持久性(Durability):事务提交后,所有结果务必被持久化
+        持久性(Durability):事务提交后,所有结果务必被持久化(双一参数避免)
     支持事务的引擎：InnoDB、NDBCluster、ToKuDB、RocksDB
     不支持事务的引擎：MyISAM、MEMORY/HEAP
 
   显式开始事务
   start transaction (read write,with consistent snapshot,read only)
-  begin/begin 
+  begin/begin work
   开启/关闭自动提交
   set autocommit=1/0
+  ##需要注意的是start transaction read write;还是会read only启动,有数据的写入的时候就会变过去
+
+  事务的提交：
+  显式提交：commit
+  隐式的提交：begin/begin work
+             start transaction
+             set autocommit=1
+             其他非事务语句(DDL/DCL(grant,revoke,set password))
+
+  事务的回滚：
+  显式回滚：rollback
+  隐式回滚：
+           连接断开
+           超时断开
+           被kill
+           异常宕机
+  
+  autocommit=0有必要吗
+  好处：批量导数据的时候/多语句提交时,不会每个SQL单独提交,提高事务提交效率
+       ##注意唯一索引,在导入数据的时候有唯一索引列有相同数据,导入会报错(即使关闭唯一性约束检查set unique_checks=0;)
+       ##但是如果导入的数据唯一索引列没有相同的数据,关闭唯一性约束检查,会提高导入的效率(作用有限)
+  麻烦：有个事务忘记提交,锁一直未释放;另一个事务长期锁等待,严重影响tps
+
+  如果没有事务控制的话,那么并发读写数据库会有什么隐患
+  脏读：(读到了未提交的数据)
+      事务T1修改了一行数据,事务T2在事务T1提交之前读到了该行数据
+  不可重复读：
+      事务T1读取了一行数据,事务T2接着修改或者删除了该行数据,当T1再次读取同一行数据时,读到的数据是修改之后的或者发现已经被删除
+  幻读：
+      事务T1读取了满足某条件的一个数据集,事务T2插入了一行或者多行数据满足了T1的选择条件,导致事务T1再次使用同样的选择条件读取的时候,得到了比第一次读取更多的数据集
+
+2事务的隔离级别
+  (RU)Read Uncommitted(读未提交)：隔离级别最低;允许脏读,允许事务查看其它事务所进行的未提交更改
+  (RC)Read Commited(读已提交)：允许幻读,允许事务查看其它事务所进行的已提交更改
+  (RR)Repeatable Read(可重复读)：消除了脏读、不可重复读、幻读,保证事务的一致性,确保每个事务的读取结果总是一样,默认的隔离级别
+  (SR)Serializable(串行)：隔离级别最高,串行化读,每次读都需要获得表级共享锁,读写间相互会阻塞
+  隔离级别                    脏读                       不可重复读                 幻读(update和insert)                 
+  读未提交                    可能                       可能                       可能
+  读已提交                    不可能                     可能                       可能
+  可重复读                    不可能                     不可能                     不可能(InnoDB特定条件下可能5.7还存在这个参数innodb_locks_unsafe_for_binlog,修改为1)
+  串行                        不可能                     不可能                     不可能
+
+  修改事务隔离级别的几种方式：
+  my.cnf中配置[mysqld]:transaction-isolation="read-committed"
+  在线全局修改：set global transaction isolation level read committed;
+  修改当前session：set session transaction isolation level read committed;
+  修改下一个事务：set transaction isolation level read committed;
+  查看当前隔离级别：select @@global.tx_isolation,@@session.tx_isolation;
+
+  update t1 set c3=30 where c2=2;更新的时候会加上锁
+  select * from t1 where c2=2 for update;在这行记录加排它锁
+  select * from t1 where c2=3 lock in share mode;在这行记录加共享锁
+
+3InnoDB读
+  快照读,snapshot read(对当前已经提交的所有事务创建一个快照,读数据的时候会读到所有已经提交的数据)
+    基于read view读可见版本,不加锁
+    start transaction with consistent snapshot +select(SQL)
+    普通select
+  当前读,current Read
+    读(已提交)最新版本,并加锁
+    select .. for update/lock in share mode;
+    DML
+    RR:事务的第一个select发起的时候才创建快照
+    RC:每次select都要重新创建一次快照
+
+4InnoDB只读事务(提升普通select的效率)
+  5.6开始支持
+  5.7进一步优化,不记录redo log 
+  5.7起,非显式声明的事务,默认都是以只读模式启动,事务过程中有数据被修改时,才自动变更为读写模式
+  start transaction read only;显式声明只读事务时information_schema.innodb_trx下的列trx_is_read_only的值为1
+
+5InnoDB如何解决幻读
+  RR级别下解决幻读
+  引入gap lock,把两条记录中间的gap锁住,避免其他事务写入
+  存在幻读的条件：
+    <=RC级别
+    innodb_locks_unsafe_for_binlog=1(5.7)
+
+6InnoDB semi-consistent read(半一致性读)
+  semi-consistent read是read committed与consistent read的结合
+  update语句如果读到一行已经加锁的记录,此时InnoDB返回该记录(已提交的)最新版本,并在此判断此版本是否满足update的where条件
+  若满足(需要更新),则会重新发起一次读操作,此时会取行的最新版本,并加锁
+  semi-consistent read发生的条件：
+    <=RC隔离级别
+    innodb_locks_unsafe_for_binlog=1时
+    update请求(不含insert,delete)
+    图中：c3列是没有索引的,select * from t1 where c3=2 for update;会对整个表产生表级行锁(因为行锁基于索引)
