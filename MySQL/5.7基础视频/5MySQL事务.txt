@@ -1,0 +1,16 @@
+1事务(Transaction)：
+  是一组SQL组成的执行单元(unit),是数据库并发控制和恢复回滚的基本单位
+  一个事务可能包含多个SQL,要么都失败,要么都成功
+  事务具备4个基本属性：
+        原子性(Atomicity)：同一个事务里,要么都提交,要么都回滚
+        一致性(Consistency):即在事务开始之前和事务结束之后,数据库的完整性约束没有被破坏
+        隔离性(Isolation):并发事务间的数据是彼此隔离的
+        持久性(Durability):事务提交后,所有结果务必被持久化
+    支持事务的引擎：InnoDB、NDBCluster、ToKuDB、RocksDB
+    不支持事务的引擎：MyISAM、MEMORY/HEAP
+
+  显式开始事务
+  start transaction (read write,with consistent snapshot,read only)
+  begin/begin 
+  开启/关闭自动提交
+  set autocommit=1/0
