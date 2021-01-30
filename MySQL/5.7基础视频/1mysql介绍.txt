@@ -29,5 +29,3 @@ MariaDB
     SQL优化,编写存储过程、触发器等业务SQL代码
 DB架构师
      整体架构设计、优化
-
-lsof -p mysqld的进程号 | grep -i socket
