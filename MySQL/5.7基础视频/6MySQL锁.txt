@@ -1,0 +1,15 @@
+1MDL锁
+  MDL：meta data lock
+  全局读锁、TABLESPACE/SCHEMA、表、FUNCTION/PROCEDURE/TRIGGER/EVENT 等多种对象加的锁
+  5.5开始引入
+  事务开启后,会锁定表的meta data lock,其他会话对表有DDL操作时,均需要等待MDL锁释放后方可继续
+  超时阈值定义：lock_wait_timeout
+ 
+  启用MDL监测
+    update performance_schema.setup_consumers set enabled='YES' where name='global_instrumentation';
+    update performance_schema.setup_instruments set enabled='YES' where name='/wait/lock/metadata/sql/mdl';
+  观察MDL锁
+    select * from performance_schema.metadata_locks\G;
+    select * from sys.schema_table_lock_waits\G;
+    show processlist;
+    
