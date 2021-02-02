@@ -8,8 +8,39 @@
   启用MDL监测
     update performance_schema.setup_consumers set enabled='YES' where name='global_instrumentation';
     update performance_schema.setup_instruments set enabled='YES' where name='/wait/lock/metadata/sql/mdl';
-  观察MDL锁
+  观察锁
     select * from performance_schema.metadata_locks\G;
     select * from sys.schema_table_lock_waits\G;
+    select * from sys.innodb_lock_waits\G;
+    show engine innodb status\G;
     show processlist;
-    
+2锁模式的兼容模式
+  见图 6MySQL锁：锁模式的兼容模式.png
+
+3InnoDB锁模式：
+  InnoDB 实现了以下两种类型的行锁：
+  共享锁(S)：允许一个事务去读一行,阻止其他事务获得相同数据集的排他锁
+  排他锁(X)：允许获得排他锁的事务更新数据,阻止其他事务取得相同数据集的共享读锁和排他写锁
+
+  为了允许行锁和表锁共存,实现多粒度锁机制,InnoDB 还有两种内部使用的意向锁(Intention Locks),这两种意向锁都是表锁
+  意向共享锁(IS)：事务打算给数据行加行共享锁,事务在给一个数据行加共享锁前必须先取得该表的 IS 锁
+  意向排他锁(IX)：事务打算给数据行加行排他锁,事务在给一个数据行加排他锁前必须先取得该表的 IX 锁
+
+3InnoDB行锁
+  主键索引是lock_rec_not_gap,Record Lock
+  唯一索引是lock_rec_not_gap,Record Lock
+  普通辅助索引是lock_ordinary,next-key lock
+  没有索引的话,则是全表范围lock_ordinary,next-key lock,等同于整个表加锁
+  RC下,只有lock_rec_not_gap,Record Lock
+  RR & innodb_locks_unsafe_for_binlog=1 ,只有lock_rec_not_gap,Record Lock
+
+  InnoDB行锁粒度
+  lock_rec_not_gap:Record Lock,单个记录上的锁
+  lock_gap:间隙锁,锁定一个范围,但不包含记录本身
+  lock_ordinary:锁定一个范围和本身 Record Lock+Gap Lock = next-key lock
+  lock_insert_intent意向插入锁,是gap_lock的一种
+  举例  见 6MySQL锁：InnoDB锁示例1.jpg：由于c3列是没有索引的,会对整列数据上锁,c1是主键索引,并且c1=6存在于这列中,会对这条记录上锁,会产生锁冲突,会堵塞;如果c1=7,不会阻塞
+        见 6MySQL锁：InnoDB锁示例2.jpg：事务T1和T2锁住的是c2=2的所有记录的next-key lock(不管c3是多少);若c2=3,不会阻塞
+        见 6MySQL锁：InnoDB锁示例3.jpg：由于c3列没有索引,会对整个c3列加上锁,但是c3=7和c3=10两个值都不存在,允许两个锁共存
+        见 6MySQL锁：InnoDB锁示例4.jpg：由于c2是普通的辅助索引,会锁住该行记录(4,2,2,0),事务T2又恰好c1=4,肯定会冲突
+        见 6MySQL锁：InnoDB锁示例5.jpg：由于c2是普通的辅助索引,并且在输出结果的这两行加上record lock,c1=7不在记录中,没有冲突;c1=6,虽然在记录中,但是前面的c1=10和8不包含6,不会有冲突
