@@ -75,7 +75,7 @@
   当前读,current Read
     读(已提交)最新版本,并加锁
     select .. for update/lock in share mode;
-    DML
+    DML(update,delete,insert)
     RR:事务的第一个select发起的时候才创建快照
     RC:每次select都要重新创建一次快照
 
