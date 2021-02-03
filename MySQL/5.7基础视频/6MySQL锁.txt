@@ -9,11 +9,8 @@
     update performance_schema.setup_consumers set enabled='YES' where name='global_instrumentation';
     update performance_schema.setup_instruments set enabled='YES' where name='/wait/lock/metadata/sql/mdl';
   观察锁
-    select * from performance_schema.metadata_locks\G;
-    select * from sys.schema_table_lock_waits\G;
-    select * from sys.innodb_lock_waits\G;
-    show engine innodb status\G;
-    show processlist;
+    select * from performance_schema.metadata_locks\G;(metadata lock)
+
 2锁模式的兼容模式
   见图 6MySQL锁：锁模式的兼容模式.png
 
@@ -29,7 +26,7 @@
 3InnoDB行锁
   主键索引是lock_rec_not_gap,Record Lock
   唯一索引是lock_rec_not_gap,Record Lock
-  普通辅助索引是lock_ordinary,next-key lock
+  普通辅助索引是lock_ordinary,next-key lock(只发生在RR隔离级别)
   没有索引的话,则是全表范围lock_ordinary,next-key lock,等同于整个表加锁
   RC下,只有lock_rec_not_gap,Record Lock
   RR & innodb_locks_unsafe_for_binlog=1 ,只有lock_rec_not_gap,Record Lock
@@ -38,19 +35,106 @@
   lock_rec_not_gap:Record Lock,单个记录上的锁
   lock_gap:间隙锁,锁定一个范围,但不包含记录本身
   lock_ordinary:锁定一个范围和本身 Record Lock+Gap Lock = next-key lock
-  lock_insert_intent意向插入锁,是gap_lock的一种
-  举例  见 6MySQL锁：InnoDB锁示例1.jpg：由于c3列是没有索引的,会对整列数据上锁,c1是主键索引,并且c1=6存在于这列中,会对这条记录上锁,会产生锁冲突,会堵塞;如果c1=7,不会阻塞
+  lock_insert_intention=locks gap before rec insert intention waiting意向插入锁,是gap_lock的一种
+  举例：
+        见 6MySQL锁：InnoDB锁示例1.jpg：由于c3列是没有索引的,会对整列数据上锁,c1是主键索引,并且c1=6存在于这列中,会对这条记录上锁,会产生锁冲突,会堵塞;如果c1=7,不会阻塞
         见 6MySQL锁：InnoDB锁示例2.jpg：事务T1和T2锁住的是c2=2的所有记录的next-key lock(不管c3是多少);若c2=3,不会阻塞
         见 6MySQL锁：InnoDB锁示例3.jpg：由于c3列没有索引,会对整个c3列加上锁,但是c3=7和c3=10两个值都不存在,允许两个锁共存
         见 6MySQL锁：InnoDB锁示例4.jpg：由于c2是普通的辅助索引,会锁住该行记录(4,2,2,0),事务T2又恰好c1=4,肯定会冲突
         见 6MySQL锁：InnoDB锁示例5.jpg：由于c2是普通的辅助索引,并且在输出结果的这两行加上record lock,c1=7不在记录中,没有冲突;c1=6,虽然在记录中,但是前面的c1=10和8不包含6,不会有冲突
-        见 6MySQL锁：InnoDB锁示例6.jpg：c2>=6是一个范围锁,9在范围内,,所以会阻塞
-        ??见 6MySQL锁：InnoDB锁示例7.jpg：insert/delete前为了防止其他事务在同一个位置插入或删除,因此会在这个位置加上next-key lock(S),所以会阻塞
-        见 6MySQL锁：InnoDB锁示例8.jpg：为了防止其他事务在同一位置插入,会在这个位置加上next-key lock(主键),对于不存在的记录,会释放这个锁,所以不会阻塞
-        见 6MySQL锁：InnoDB锁示例8.jpg：都会被阻塞(最后的例子：b是普通索引(可以按照b,a的顺序),会对这列进行排序(4,6)在(7,6)前面,也在gap内,所以会被阻塞)
+        见 6MySQL锁：InnoDB锁示例6.jpg：c2>=6是一个范围锁,9在范围内,所以会阻塞
+        **见 6MySQL锁：InnoDB锁示例7.jpg：范围查询,会在c1=4的下一个值加一个记录锁,以及4和6之间的gap也加上锁,select * from information_schema.data_locks where lock_mode!='IX'\G;
+        见 6MySQL锁：InnoDB锁示例8.jpg：为了防止其他事务在同一位置插入,会在这个位置加上next-key lock(S),对于不存在的记录,会释放这个锁,所以不会阻塞
+        **见 6MySQL锁：InnoDB锁示例9.jpg：都会被阻塞(最后的例子：b是普通索引(可以按照b,a的顺序),会对这列进行排序(4,6)在(7,6)前面,也在gap内,所以会被阻塞)
+        见 6MySQL锁：InnoDB锁示例9.jpg：不会被阻塞,不管T2有没有begin,在rr隔离级别下,事务第一个select发起的时候创建快照,不加锁,一致性非锁定读
 
    gap和gap并不冲突
    gap只和insert intention锁冲突
-   ??select ... for update,对于已存在的记录,加的是lock_rec_not_gap,(普通索引加lock_ordinary),不存在的记录,加lock_gap
+   select ... for update,对于已存在的记录,加的是lock_rec_not_gap,(普通索引加lock_ordinary),不存在的记录,加lock_gap
+   insert,先是lock_ordinary(S),当插入的值是不存在的时候,也就是说过了唯一性冲突检测,会释放lock_ordinary(S),最后插入成功,持有lock_rec_not_gap(X)
 
    将锁信息打印到err.log   set innodb_status_output_locks=1; && set innodb_status_output=1
+
+   select * from information_schema.data_locks\G
+   record,X,gap----->lock_gap|X
+   record,X----->lock_rec_not_gap|X
+   record,X && record,X,gap 同时出现则是lock_ordinary|X
+
+4InnoDB锁之insert intention lock
+  它是个gap lock
+  如果两个事物想往同一个gap中insert数据,但写入的位置不一样时,是无需等待,可以直接写入,因为没有冲突
+  gap lock仅用于防止往gap上写入新纪录(避免幻读),因此无论是S还是X,其实作用都是一样的
+
+5Innodb锁特点
+  显式锁(explicit-lock)
+    显式声明的select * from t where c1=xxx for update/lock in share mode 
+  隐式锁(implicit-lock)
+    update t set c2=? where c1=?;
+    修改主键时,也会导致辅助索引上加隐式锁;反之也如此
+    和其他session有冲突时,隐式锁转换为显式锁
+
+6一致性非锁定读(快照读)
+  consistent non-locking read
+  通过MVCC机制,基于当前时间点read view读取
+  默认情况下,不加锁
+  **一致性非锁定读指的是如果一条记录被加了X锁,其他事务还能读取这条记录----普通select
+  **一致性锁定读指的是一个事务可以通过SELECT语句给某条记录加X锁或者S锁----select  ... for update/lock in share mode
+
+7死锁(将innodb_lock_wait_timeout时间设置短一点(5s-10s))
+  如果多个事务都需要访问数据,而另一个事务已经以互斥方式锁定该数据,则会发生死锁
+  死锁是指由于每个事务都持有对方需要的锁而无法进行其他事务的情况
+  事务A等待事务B,同时事务B等待事务A,会产生死锁
+  
+  InnoDB有死锁检测线程,如果检测到死锁,会马上抛出异常并回滚一个事务(另一个继续执行)
+  
+  怎么判断是否会发生死锁?
+  A事务T1需要等待事务T2,画一条T1到T2的线,
+  B以此类推
+  C最后整个图如果有回路就表示有死锁
+
+  show engine innodb status
+    只显示最后的死锁信息
+  设置innodb_print_all_deadlocks=1
+    在日志中记录全部死锁信息
+  自动检测死锁,并自动回滚某个事务
+    优先回滚小事务,影响较小的事务(后启动或者修改的数据比较少)
+  **表锁不会发生死锁,适当的调小innodb_lock_wait_timeout(默认50s)
+  **在秒杀这种高并发场景下,可以关闭死锁检测(innodb_dead_lock_detect=0),降低死锁检测开销,提高并发效率
+
+  需要注意的是：
+    偶尔死锁不可怕,频繁死锁才需要关注
+    程序中应有事务失败检测及自动重复提交机制
+    多用小事务,并及时显示提交/回滚
+    加for update、lock in share mode锁时,最好降低事务隔离级别,例如用RC级别,降低死锁发生概率,也可以降低锁粒度
+    事务中涉及多个表时,或者涉及多行记录时,每个事务的操作顺序都要保持一致,降低死锁概率,最好用存储过程/存储函数固化
+    通过索引优化SQL效率,降低死锁概率
+    死锁不是‘锁死’,死锁会快速检测到,快速回滚  而‘锁死’则是长时间锁等待
+
+  8.0以后的新特性(锁)
+    nowait
+    skip locked
+  
+    InnoDB锁优化(锁基于索引,索引优化,事务尽可能的小)
+    尽可能让所有的数据检索都通过索引来完成,从而避免InnoDB因为无法通过索引键加锁而升级为表锁锁定
+    合理设计索引,让InnoDB在索引键上面加锁尽可能准确,尽可能的缩小锁定范围,避免造成不必要的锁定而影响其他SQL的执行
+    尽可能减少范围数据检索过滤条件,降低过多的数据被加上next-key lock
+    多用primary或unique key
+
+  查看InnoDB锁：show global status;
+    Innodb_row_lock_current_waits 当前等到的行锁数量
+    Innodb_row_lock_time          计算行锁总耗时
+    Innodb_row_lock_time_avg      请求行锁平均耗时
+    Innodb_row_lock_time_max      请求行锁最久耗时
+    Innodb_row_lock_waits         行锁发生次数
+
+    show processlist;
+    show engine innodb status\G;
+    记录锁信息到error日志中,在error日志中观看set innodb_status_output_locks=1; && set innodb_status_output=1;
+    I_S下的innodb_trx,innodb_locks,innodb_lock_waits,sys下的innodb_lock_waits
+
+8锁优化
+  避免myisam(表锁),改用innodb
+  创建合适的索引,尽量不要多个单列索引
+  避免大事务,长事务
+  在业务低峰期DDL
+  **执行DDL/备份前,先判断是否有长SQL、未提交事务及其他lock wait实践

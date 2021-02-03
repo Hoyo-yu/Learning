@@ -103,3 +103,5 @@ cpu load
 MySQL连接数
 MySQL DML及SELECT数量
 innodb buffer pool命中率
+
+监控指标参考：https://note.youdao.com/ynoteshare1/index.html?id=938c8d9f3351b6d34a7b355e61b76d79&type=note

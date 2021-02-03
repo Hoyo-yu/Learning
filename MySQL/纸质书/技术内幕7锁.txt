@@ -33,12 +33,4 @@
   由于InnoDB存储引擎支持的是行级别的锁,因此意向锁其实不会阻塞除全表扫描以外的任何请求
   表级意向锁与行级锁的兼容性见 5.7基础视频\6MySQL锁：意向锁与行级锁的兼容性.jpg
 
-3一致性非锁定读
-
-4一致性锁定读
-
-5经典死锁案例(172.16.1.5修改了innodb_lock_wait_timeout)
-  场景1：多个insert语句导致的死锁问题
-       create table t1 (c1 int not null,c2 int,primary key(c1),unique key(c2));
-  场景2：事务回滚导致的死锁问题
-       
+  
