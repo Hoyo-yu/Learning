@@ -44,3 +44,13 @@
         见 6MySQL锁：InnoDB锁示例3.jpg：由于c3列没有索引,会对整个c3列加上锁,但是c3=7和c3=10两个值都不存在,允许两个锁共存
         见 6MySQL锁：InnoDB锁示例4.jpg：由于c2是普通的辅助索引,会锁住该行记录(4,2,2,0),事务T2又恰好c1=4,肯定会冲突
         见 6MySQL锁：InnoDB锁示例5.jpg：由于c2是普通的辅助索引,并且在输出结果的这两行加上record lock,c1=7不在记录中,没有冲突;c1=6,虽然在记录中,但是前面的c1=10和8不包含6,不会有冲突
+        见 6MySQL锁：InnoDB锁示例6.jpg：c2>=6是一个范围锁,9在范围内,,所以会阻塞
+        ??见 6MySQL锁：InnoDB锁示例7.jpg：insert/delete前为了防止其他事务在同一个位置插入或删除,因此会在这个位置加上next-key lock(S),所以会阻塞
+        见 6MySQL锁：InnoDB锁示例8.jpg：为了防止其他事务在同一位置插入,会在这个位置加上next-key lock(主键),对于不存在的记录,会释放这个锁,所以不会阻塞
+        见 6MySQL锁：InnoDB锁示例8.jpg：都会被阻塞(最后的例子：b是普通索引(可以按照b,a的顺序),会对这列进行排序(4,6)在(7,6)前面,也在gap内,所以会被阻塞)
+
+   gap和gap并不冲突
+   gap只和insert intention锁冲突
+   ??select ... for update,对于已存在的记录,加的是lock_rec_not_gap,(普通索引加lock_ordinary),不存在的记录,加lock_gap
+
+   将锁信息打印到err.log   set innodb_status_output_locks=1; && set innodb_status_output=1
