@@ -25,7 +25,7 @@ b)    如果是插入、更新等写请求，必须等待unlock tables释放读�
 a)    如果是查询请求，不会被阻塞。
 b)    如果是写请求，必须等待unlock tables释放读锁
 
-因此，flush tables with read lock操作是{tables}所有表的表级排他锁，同时是库级读锁，会阻塞库上所有写操作，直到执行unlock tables。其影响面比flush tables更大。也就是比flush tables多一点影响，阻塞了｛tables}之外的表的写操作，不影响其读操作，只有unlock tables之后，释放了这个对库的全局读锁之后，才可以写。
+因此，flush tables with read lock操作是{tables}所有表的表级排他锁，同时是库级读锁，会阻塞库上所有写操作，直到执行unlock tables。其影响面比flush tables更大。也就是比flush tables多一点影响，阻塞了{tables}之外的表的写操作，不影响其读操作，只有unlock tables之后，释放了这个对库的全局读锁之后，才可以写。
 
  
 

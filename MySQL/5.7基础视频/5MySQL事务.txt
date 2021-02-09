@@ -68,11 +68,11 @@
   select * from t1 where c2=3 lock in share mode;在这行记录加共享锁
 
 3InnoDB读
-  快照读,snapshot read(对当前已经提交的所有事务创建一个快照,读数据的时候会读到所有已经提交的数据)
+  快照读,snapshot read(对当前已经提交的所有事务创建一个快照,读数据的时候会读到所有已经提交的数据)(一致性非锁定读)
     基于read view读可见版本,不加锁
     start transaction with consistent snapshot +select(SQL)
     普通select
-  当前读,current Read
+  当前读,current Read(一致性锁定读)
     读(已提交)最新版本,并加锁
     select .. for update/lock in share mode;
     DML(update,delete,insert)
