@@ -17,6 +17,26 @@ select table_schema db, table_name, data_free, engine from information_schema.ta
                 IO增多
                 innodb buffer pool命中率降低
                 表空间物理文件大
+
+1.3.2表空间文件迁移
+    **注意的是
+    不能并发做表空间传输
+    不能有外键
+    
+    flush table OldDB.tbName for export;在原库
+    cp tbName.ibd,tbName.frm 到新实例被需要的库中
+    unlock tables;
+    
+    在新的库中建立一张结构和原表相同的表
+    create table NewDB.tbName like OldDB.tbName;这是在同一个实例中
+    在另一个实例中,需要重新创建和原表相同的表结构
+    
+    
+    alter table tbName discard tablespace;会将.ibd文件删除
+    所以需要重新cp tbName.ibd到新实例被需要的库中
+    chown -R mysql.mysql tbName.ibd
+    alter table tbName import tablespace;
+
 1.4表空间碎片整理方法：
 alter table table_name engine=innodb;
 因为线上结构大部分是主从结构,这个动作会造成主从复制延迟严重

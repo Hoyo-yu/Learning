@@ -1,0 +1,86 @@
+1InnoDB的介绍：
+  基于B+树的聚集索引组织表
+  基于索引的行锁实现
+  完整支持ACID、MVCC、Crash Recovery等特性
+  支持4中事务隔离级别
+  支持外键、全文检索(5.6)
+  支持多种文件格式和数据压缩
+  高性能、高并发、高效的buffer pool管理 
+
+2存储结构
+  表空间
+    所有的数据都需要存储到表空间中
+    表空间分类：
+      系统表空间(ibdata1)
+        总是必须的,关闭不了
+        主要存储对象：
+                    Data dictionary
+                    Double write buffer
+                    Insert buffer/change buffer
+                    Rollback segments
+                    Undo space
+                    Foreign key constraint system tables
+                    User Data(innodb_file_per_table=0)
+
+      独立表空间(innodb_file_per_table)
+        设置innodb_file_per_table=1
+        每个table都有各自的.ibd文件 
+        rollback segments,doublewrite buffer等任存储在系统表空间文件里
+        主要存储聚集索引B+树以及其他普通索引数据
+        回收独立表空间:truncate table x; alter table x engine=innodb;
+
+      Undo Tablespace(5.6)
+        存储事务中旧版本数据,事务对数据进行更新之前,需要对旧版本进行保存
+        innodb_undo_logs设置undo回滚段数量
+        系统表空间总是需要1个undo回滚段
+        临时表空间总是需要32个undo回滚段(5.7)
+        因此,undo回滚段必须总是大于33个,并且循环轮流使用
+        可以被在线truncate(5.7),当undo超过innodb_max_undo_log_size时,会触发truncate动作
+        purge执行innodb_purge_rseg_truncate_frequency(128)次后,也会触发truncate动作
+        建议使用独立undo表空间
+
+      Temporary Tablespace(5.7)
+        独立表空间文件ibtmp1,默认12M
+        实例关闭后,文件也会删除;实例启动后,文件重新创建
+        无需参与crash recovery,因此不记录redo log 
+        不支持压缩
+        由innodb_temp_data_file_path定义
+        通用临时表create temporary table和SQL执行过程中产生的内部临时表(using temporary table)会共用这个临时表空间
+
+      通用表空间(General Tablespace(5.7))
+        多个table放在同一个表空间中
+        可以定义多个通用表空间,并且放到不同的磁盘上
+        可以较少metadata的存储开销
+        和系统表空间类似,已分配占用的表空间无法收缩归还给操作系统(全部需要重建)
+
+  InnoDB是集聚索引组织表
+    基于B+树
+    数据以聚集索引逻辑顺序存储
+    聚集索引优先选择显示定义的主键,其次选择第一个非NULL的唯一索引,再次使用隐藏的ROWID
+    聚集索引叶子节点存储郑航数据
+    普通索引同时存储主键索引键值
+
+  表空间
+    独立表空间：
+      表空间更方便回收
+      透明表空间文件迁移
+      不过需要更多的file handler,当table数量很大(或有很多表分区)时,可能会是个麻烦(好在5.7开始有不错的优化)
+      删除大表的代价也更大
+
+    共享表空间
+      删除大表或删除大量数据时的开销更小
+      可以使用裸设备,性能可能有提升
+
+  表空间管理
+    消除碎片
+      alter table xx engine=innodb;或者optimize table xx;
+      尽量使用pt-osc 
+    回收表空间 
+      独立表空间：alter table xx engine = innodb;
+      共享表空间：重新导出、导入
+      尽量使用pt-osc来操作
+    表空间文件迁移
+      目标服务器：alter table xx discard tablespace;
+      源服务器：flush table x for export,备份过去
+      目标服务器：alter table xx import tablespace;
+      要求：表结构务必一致,innodb_page_size也要一致

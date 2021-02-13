@@ -47,6 +47,8 @@
         见 6MySQL锁：InnoDB锁示例8.jpg：为了防止其他事务在同一位置插入,会在这个位置加上next-key lock(S),对于不存在的记录,会释放这个锁,所以不会阻塞
         **见 6MySQL锁：InnoDB锁示例9.jpg：都会被阻塞(最后的例子：b是普通索引(可以按照b,a的顺序),会对这列进行排序(4,6)在(7,6)前面,也在gap内,所以会被阻塞)
         见 6MySQL锁：InnoDB锁示例9.jpg：不会被阻塞,不管T2有没有begin,在rr隔离级别下,事务第一个select发起的时候创建快照,不加锁,一致性非锁定读
+        
+        **在范围查询c1<=4时,会对4后面的一条记录也加上锁,select * from performance_schema.data_locks\G;可以看到,在判断下一条记录符不符合条件,不符合条件不会被阻塞(RR)
 
    gap和gap并不冲突
    gap只和insert intention锁冲突
@@ -59,6 +61,8 @@
    record,X,gap----->lock_gap|X
    record,X----->lock_rec_not_gap|X
    record,X && record,X,gap 同时出现则是lock_ordinary|X
+
+   RC隔离级别下,没有gap锁
 
 4InnoDB锁之insert intention lock
   它是个gap lock
