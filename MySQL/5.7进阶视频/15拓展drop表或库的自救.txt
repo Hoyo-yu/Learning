@@ -7,7 +7,7 @@ https://blog.csdn.net/weixin_33836223/article/details/93724924
 
 主库挂了:
 方法一：
-      思路：全备恢复到新的伪主库上,将binlog server同步的所有binlog拷贝到新的伪主库所在的相应目录(没有binlog的情况下,drop后不操作数据库将原有主库的binlog拷贝到新的伪主库也可以)
+      思路：全备恢复到新的伪主库上,将binlog server同步的所有binlog拷贝到新的伪主库所在的相应目录
             然后在新建一个从库实例(另一台主机上),然后start slave sql_thread until sql_before_gtids到drop之前的gtid信息(意思是从库同步从开始同步到该gtid所有的数据),此时可能有两种情况
             1binlog是从000001开始的,可以不需要在从库全备恢复;2反之则需要从库全备恢复
     示例：主库(172.16.1.3:3306)执行了drop操作,伪主库(172.16.1.3:3310)或者可以用其他主机,从库(172.16.1.5:3306)

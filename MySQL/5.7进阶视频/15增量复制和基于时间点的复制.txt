@@ -44,7 +44,7 @@ mysqlbinlog --help 2>&1 > 1.txt
 
 ERROR: Got error reading packet from server: A slave with the same server_uuid/server_id as this slave has connected to the master;
 不同的服务器从远程拉取主库的binlog(-R),需要指定--stop-never-slave-server-id=xxx
-mysqlbinlog -R --raw --read-from-remote-server --stop-never --host 172.16.1.3 --port 3306 -uroot -pluling1012 mysql-bin.000001 --stop-never-slave-server-id=xxx
+mysqlbinlog -R --raw --read-from-remote-server --stop-never --host 172.16.1.3 --port 3306 -uroot -pluling1012 mysql-bin.000001 --stop-never --slave-server-id=xxx
 
 binlog备份：
 touch /data/mysql3306/binlogsh/mysql3306.binlog.conf
