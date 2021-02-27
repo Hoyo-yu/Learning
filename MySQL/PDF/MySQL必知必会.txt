@@ -289,3 +289,41 @@ DISTINCT;
 导出（计算）列.
 
 30使用存储过程
+为什么要使用存储过程？
+  通过把处理封装在容易使用的单元中,简化复杂的操作 
+  不要求反复建立一系列处理步骤,这保证了数据的完整性
+  简化对变动的管理,如果表名、列名或业务逻辑有变化,只需要更改存储过程的代码,使用它的人员甚至不需要知道这些变化
+  提高性能,因为使用存储过程比使用单独的SQL语句更快
+  存储过程可以编写功能更强更灵活的代码
+
+  创建存储过程：create procedure procedure_name()
+               begin
+                  存储过程体
+               end;
+
+  调用存储过程：call procedure_name();-----存储过程实际上是一种函数,调用的时候需要()
+  eg:create procedure ordertotal(
+      IN onumber INT,               从外界传参数
+      IN taxable BOOLEAN,           从外界传参数
+      OUT ototal DECIMAL(8,2)       表示的是-999999.99~999999.99
+  )
+     BEGIN
+        declare total DECIMAL(8,2);    定义局部变量total
+        declare taxrate INT default 6; 定义局部变量taxrate
+    
+        select Sum(item_price*quantity)
+        from orderitems
+        where order_num = onumber
+        INTO total;
+
+        IF taxable THEN
+          select total+(total/100*taxrate) INTO total;
+        END IF;
+          select total INTO ototal;
+        END;
+
+  调用：call ordertotal(20005,0,@total)
+        select @total;
+
+  检查存储过程：show create procedure ordertotal;
+               show procedure status;
