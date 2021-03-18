@@ -79,7 +79,7 @@ innodb_log_files_in_group
 innodb_mirrored_log_groups(5.7之后已删除)
 innodb_log_group_home_dir
 
-同样是记录事务日志,重做日志和二进制日志的区别：
+同样是记录事务日志,重做日志(redo log)和二进制日志的区别：
 (1)二进制日志会记录所有与MySQL数据库有关的日志记录,包括innodb、myisam、Heap等其他引擎的日志
    而innodb存储引擎的重做日志至记录有关该引擎本身的事务日志
 (2)记录的内容不同。无论用户将二进制日志文件记录格式设为statement还是row,又或者是mixed,其记录的都是一个事务的具体操作内容,即该日志是逻辑日志。
